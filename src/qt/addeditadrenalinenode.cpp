@@ -14,6 +14,10 @@
 #include "base58.h"
 #include <QMessageBox>
 #include <QClipboard>
+#include <string>
+
+
+string enter_txid = "Enter YOUR 20,000 HEXLAN TXID";
 
 AddEditAdrenalineNode::AddEditAdrenalineNode(QWidget *parent) :
     QDialog(parent),
@@ -28,7 +32,7 @@ AddEditAdrenalineNode::AddEditAdrenalineNode(QWidget *parent) :
     ui->aliasLineEdit->setPlaceholderText("Enter your Masternode alias");
     ui->addressLineEdit->setPlaceholderText("Enter your IP & port");
     ui->privkeyLineEdit->setPlaceholderText("Enter your Masternode private key");
-    ui->txhashLineEdit->setPlaceholderText("Enter your 20,000 HEXLAN TXID");
+    ui->txhashLineEdit->setPlaceholderText(enter_txid);
     ui->outputindexLineEdit->setPlaceholderText("Enter your transaction output index");
     ui->rewardaddressLineEdit->setPlaceholderText("Enter a reward recive address");
     ui->rewardpercentageLineEdit->setPlaceholderText("Input the % for the reward");
