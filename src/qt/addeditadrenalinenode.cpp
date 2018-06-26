@@ -28,8 +28,7 @@ AddEditAdrenalineNode::AddEditAdrenalineNode(QWidget *parent) :
     ui->aliasLineEdit->setPlaceholderText("Enter your Masternode alias");
     ui->addressLineEdit->setPlaceholderText("Enter your IP & port");
     ui->privkeyLineEdit->setPlaceholderText("Enter your Masternode private key");
-    if (nHeight < 52780) ui->txhashLineEdit->setPlaceholderText("Enter your 20,222 HEXLAN TXID");
-    else ui->txhashLineEdit->setPlaceholderText("Enter your 20,777 HEXLAN TXID");
+    ui->txhashLineEdit->setPlaceholderText("Enter your 20,000 HEXLAN TXID");
     ui->outputindexLineEdit->setPlaceholderText("Enter your transaction output index");
     ui->rewardaddressLineEdit->setPlaceholderText("Enter a reward recive address");
     ui->rewardpercentageLineEdit->setPlaceholderText("Input the % for the reward");
