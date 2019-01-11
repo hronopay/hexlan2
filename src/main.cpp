@@ -1457,6 +1457,15 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 
     int64_t nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
 
+
+
+    int64_t nAntiStopMining = GetAdjustedTime() - pindexPrev->GetBlockTime();
+    if (nAntiStopMining >= 100 * nTargetTemp)
+        return bnTargetLimit.GetCompact(); // if powerful miners quit mining it makes possible CPU mining
+
+
+
+
     if (nActualSpacing < 0){
         nActualSpacing = nTargetTemp;
     }
