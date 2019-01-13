@@ -2715,15 +2715,24 @@ bool CBlock::AcceptBlock()
     if (!Checkpoints::CheckHardened(nHeight, hash))
         return DoS(100, error("AcceptBlock() : rejected by hardened checkpoint lock-in at %d", nHeight));
 
+ 
+
+//--------------------------------------------------------------------------------------------------------
     // Verify hash target and signature of coinstake tx
     if (IsProofOfStake())
     {
         uint256 targetProofOfStake;
-        if (!CheckProofOfStake(pindexPrev, vtx[1], nBits, hashProof, targetProofOfStake))
+        if (!CheckProofOfStake(pindexPrev, vtx[1], nBits, hashProof, targetProofOfStake) && (GetBlockTime() - pindexPrev->GetBlockTime()) < NO_MINING_TIME * nTargetTmp)
         {
             return error("AcceptBlock() : check proof-of-stake failed for block %s", hash.ToString());
         }
+        // The 2nd condition '&& (GetBlockTime() - pindexPrev->GetBlockTime()) < NO_MINING_TIME * nTargetTmp'
+        // is added for more secure check, it needs more testing
     }
+//--------------------------------------------------------------------------------------------------------
+
+
+
 
     // Check that the block satisfies synchronized checkpoint
     if (!Checkpoints::CheckSync(nHeight))
