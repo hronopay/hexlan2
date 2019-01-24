@@ -27,7 +27,6 @@ static const int64_t STATIC_POS_REWARD = 10 * CENT; //Constant POS reward of 10%
 static const int64_t TARGET_SPACING_FORK = 90;
 static const int64_t TARGET_SPACING = 90;
 static const int64_t TARGET_SPACING2 = 90;
-static const int64_t NO_MINING_TIME = 100; //How many TARGET_SPACINGs wait until reduce the difficulty for CPU mining 
 static const bool NO_FORK = true;
 static const signed int HARD_FORK_BLOCK = 90000000;
 static const int64_t STAKE_TIMESPAN_SWITCH_TIME = 1508858115;

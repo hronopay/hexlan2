@@ -1460,7 +1460,7 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 
 //-------------------------------------------------------------------------------------------------------
     int64_t nAntiStopMining = GetAdjustedTime() - pindexPrev->GetBlockTime();
-    if (nAntiStopMining >= NO_MINING_TIME * nTargetTemp && isMining)
+    if (nAntiStopMining >= 100 * nTargetTemp && isMining)
         return bnTargetLimit.GetCompact(); 
     // if powerful miners quit mining it makes possible CPU mining soon
     // the 3rd parameter is added to avoid invalid check of already mined blocks
@@ -2688,19 +2688,9 @@ bool CBlock::AcceptBlock()
     if (IsProofOfStake() && !CheckCoinStakeTimestamp(nHeight, GetBlockTime(), (int64_t)vtx[1].nTime))
         return DoS(50, error("AcceptBlock() : coinstake timestamp violation nTimeBlock=%d nTimeTx=%u", GetBlockTime(), vtx[1].nTime));
 
-
-//-----------------------------------------------------------------------------------------------------------------
     // Check proof-of-work or proof-of-stake
-    unsigned int nTargetTmp = TARGET_SPACING;
-    if (pindexPrev->GetBlockTime() > FORK_TIME)
-        nTargetTmp = TARGET_SPACING2;
-
-    if (nBits != GetNextTargetRequired(pindexPrev, IsProofOfStake(), false) && hash != uint256("0x474619e0a58ec88c8e2516f8232064881750e87acac3a416d65b99bd61246968") && (GetBlockTime() - pindexPrev->GetBlockTime()) < NO_MINING_TIME * nTargetTmp)
+    if (nBits != GetNextTargetRequired(pindexPrev, IsProofOfStake(), false) && hash != uint256("0x474619e0a58ec88c8e2516f8232064881750e87acac3a416d65b99bd61246968") && hash != uint256("0x4f3dd45d3de3737d60da46cff2d36df0002b97c505cdac6756d2d88561840b63") && hash != uint256("0x274996cec47b3f3e6cd48c8f0b39c32310dd7ddc8328ae37762be956b9031024"))
         return DoS(100, error("AcceptBlock() : incorrect %s", IsProofOfWork() ? "proof-of-work" : "proof-of-stake"));
-    // Last condition means it doesn't matter if old gap in blocks was closed with CPU mining or with resumption of miner 
-//-----------------------------------------------------------------------------------------------------------------
-
-
 
     // Check timestamp against prev
     if (GetBlockTime() <= pindexPrev->GetPastTimeLimit() || FutureDrift(GetBlockTime()) < pindexPrev->GetBlockTime())
