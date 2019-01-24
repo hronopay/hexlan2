@@ -174,7 +174,7 @@ Value checkkernel(const Array& params, bool fHelp)
 
     COutPoint kernel;
     CBlockIndex* pindexPrev = pindexBest;
-    unsigned int nBits = GetNextTargetRequired(pindexPrev, true, true);
+    unsigned int nBits = GetNextTargetRequired(pindexPrev, true);
     int64_t nTime = GetAdjustedTime();
     nTime &= ~STAKE_TIMESTAMP_MASK;
 

@@ -160,7 +160,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
     if (mapArgs.count("-mintxfee"))
         ParseMoney(mapArgs["-mintxfee"], nMinTxFee);
 
-    pblock->nBits = GetNextTargetRequired(pindexPrev, fProofOfStake, true);
+    pblock->nBits = GetNextTargetRequired(pindexPrev, fProofOfStake);
 
 
     // Collect memory pool transactions into the block
