@@ -1444,6 +1444,13 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 
     CBigNum bnTargetLimit = fProofOfStake ? GetProofOfStakeLimit(pindexLast->nHeight) : Params().ProofOfWorkLimit();
 
+//----------------------------------------------------------------------------------------------------
+    if(fProofOfStake)     LogPrintf("!!!*****POS*******  bnTargetLimit =  %s\n", bnTargetLimit.GetCompact());
+    if(!fProofOfStake)     LogPrintf("!!!*****POW*******  bnTargetLimit =  %s\n", bnTargetLimit.GetCompact());
+//----------------------------------------------------------------------------------------------------
+
+
+
     if (pindexLast == NULL)
         return bnTargetLimit.GetCompact(); // genesis block
 
