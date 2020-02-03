@@ -1,0 +1,10 @@
+
+build/
+
+src/leveldb/
+
+src/qt/locale/
+
+src/secp256k1/
+
+*.zip
