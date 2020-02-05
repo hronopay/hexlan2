@@ -1432,7 +1432,10 @@ const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfSta
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
-	unsigned int nTargetTemp = TARGET_SPACING;
+    //return bnTargetLimit.GetCompact();  
+    // uncomment above line for easy pow mining blocks (collateral change forinst.), say if PoW rewards are 0 all the time...
+	
+    unsigned int nTargetTemp = TARGET_SPACING;
 	if (pindexLast->nTime > FORK_TIME)
 		nTargetTemp = TARGET_SPACING2;
 
