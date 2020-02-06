@@ -2558,23 +2558,26 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     CScript payee;
                     CTxIn vin;
                     if( !masternodePayments.GetBlockPayee(pindexBest->nHeight+1, payee, vin) ){
-                        foundPayee = true; //doesn't require a specific payee
-                        foundPaymentAmount = true;
-                        foundPaymentAndPayee = true;
+                        foundPayee = false; //doesn't require a specific payee
+                        foundPaymentAmount = false;
+                        foundPaymentAndPayee = false;
                         if(fDebug) { 
                             LogPrintf("CheckBlock() :(GetBlockPayee) Using non-specific masternode payments %d\n", pindexBest->nHeight+1); 
                             LogPrintf("CheckBlock() :(GetBlockPayee) payee =  %s\n", payee.ToString().c_str()); 
                         }
                     }
                     if(payee == CScript()){
-                        foundPayee = true; //doesn't require a specific payee
-                        foundPaymentAmount = true;
-                        foundPaymentAndPayee = true;
+                        foundPayee = false; //doesn't require a specific payee
+                        foundPaymentAmount = false;
+                        foundPaymentAndPayee = false;
                         if(fDebug) { 
                             LogPrintf("CheckBlock() : (CScript) Using non-specific masternode payments %d\n", pindexBest->nHeight+1); 
                             LogPrintf("CheckBlock() :(CScript payee =  %s\n", payee.ToString().c_str()); 
                         }
                     }
+
+                    CHexlanAddress mnRewardPayee;
+
 
                     for (unsigned int i = 0; i < vtx[1].vout.size(); i++) {
 
@@ -2593,36 +2596,48 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                             ExtractDestination(vtx[1].vout[i].scriptPubKey, address11);
                             CHexlanAddress address2(address11);
                             LogPrintf("CheckBlock() : vout[i].scriptPubKey ( %s )  nHeight %d. \n",  address2.ToString().c_str(), pindexBest->nHeight+1);
+                            mnRewardPayee = address2;
                         }
 
                         if(vtx[1].vout[i].nValue == masternodePaymentAmount )
                             foundPaymentAmount = true;
+
                         if(vtx[1].vout[i].scriptPubKey == payee )
                             foundPayee = true;
+
                         if(vtx[1].vout[i].nValue == masternodePaymentAmount && vtx[1].vout[i].scriptPubKey == payee)
                             foundPaymentAndPayee = true;
                     }
 
-                    CTxDestination address1;
+                /*    CTxDestination address1;
                     ExtractDestination(payee, address1);
                     CHexlanAddress address2(address1);
-
+                */
                     if(!foundPaymentAndPayee) {
-                        if(fDebug) { LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1); }
-                        return DoS(100, error("CheckBlock() : Couldn't find masternode payment or payee"));
-                    } else {
-                        LogPrintf("CheckBlock() : Found payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1);
+                        if(fDebug) { LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or winner-payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1); }
+
+                        
+                        //========  we need to uncomment  the line below  after making check that payee belongs to MN list
+                        //return DoS(100, error("CheckBlock() : Couldn't find masternode payment or winner payee"));
+
+                    } 
+                    else {
+                        LogPrintf("CheckBlock() : Found payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1);
                     }
-                } else {
+                } 
+                else {
                     if(fDebug) { LogPrintf("CheckBlock() : Skipping masternode payment check - nHeight %d Hash %s\n", pindexBest->nHeight+1, GetHash().ToString().c_str()); }
                 }
-            } else {
+            } 
+            else {
                 if(fDebug) { LogPrintf("CheckBlock() : pindex is null, skipping masternode payment check\n"); }
             }
-        } else {
+        } 
+        else {
             if(fDebug) { LogPrintf("CheckBlock() : skipping masternode payment checks\n"); }
         }
-    } else {
+    } 
+    else {
         if(fDebug) { LogPrintf("CheckBlock() : Is initial download, skipping masternode payment check %d\n", pindexBest->nHeight+1); }
     }
 
