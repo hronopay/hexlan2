@@ -2613,8 +2613,53 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     ExtractDestination(payee, address1);
                     CHexlanAddress address2(address1);
                 */
+
+ 
+
+
+
+                    std::vector<CMasternode> vMasternodes = mnodeman.GetFullMasternodeVector();
+
+                    BOOST_FOREACH(CMasternode& mn, vMasternodes)
+                        {
+
+                            // populate list
+                            // Address, Protocol, Status, Active Seconds, Last Seen, Pub Key
+                            //addressItem = mn.addr.ToString();
+
+                            CScript pubkey;
+                            pubkey =GetScriptForDestination(mn.pubkey.GetID());
+                            CTxDestination address1;
+                            ExtractDestination(pubkey, address1);
+                            CHexlanAddress address2(address1);
+
+                            if(mnRewardPayee == address2) LogPrintf("CheckBlock() : ========== OOOOOOOOOKKK!!!!!!!. \n");
+                            else LogPrintf("CheckBlock() : ********** NOOOOOOOOOOOOOO!!!!!!!. \n");
+                            
+                        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     if(!foundPaymentAndPayee) {
-                        if(fDebug) { LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or winner-payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1); }
+                        /*if(fDebug) {*/ LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or winner-payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1); /*}*/
 
                         
                         //========  we need to uncomment  the line below  after making check that payee belongs to MN list

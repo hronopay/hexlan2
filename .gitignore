@@ -12,3 +12,5 @@ src/secp256k1/
 servers\.txt
 
 Hexlan-qt
+
+src/hexland
