@@ -2561,16 +2561,40 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         foundPayee = true; //doesn't require a specific payee
                         foundPaymentAmount = true;
                         foundPaymentAndPayee = true;
-                        if(fDebug) { LogPrintf("CheckBlock() :(GetBlockPayee) Using non-specific masternode payments %d\n", pindexBest->nHeight+1); }
+                        if(fDebug) { 
+                            LogPrintf("CheckBlock() :(GetBlockPayee) Using non-specific masternode payments %d\n", pindexBest->nHeight+1); 
+                            LogPrintf("CheckBlock() :(GetBlockPayee) payee =  %s\n", payee.ToString().c_str()); 
+                        }
                     }
-                    else if(payee == CScript()){
+                    if(payee == CScript()){
                         foundPayee = true; //doesn't require a specific payee
                         foundPaymentAmount = true;
                         foundPaymentAndPayee = true;
-                        if(fDebug) { LogPrintf("CheckBlock() : (CScript) Using non-specific masternode payments %d\n", pindexBest->nHeight+1); }
+                        if(fDebug) { 
+                            LogPrintf("CheckBlock() : (CScript) Using non-specific masternode payments %d\n", pindexBest->nHeight+1); 
+                            LogPrintf("CheckBlock() :(CScript payee =  %s\n", payee.ToString().c_str()); 
+                        }
                     }
 
                     for (unsigned int i = 0; i < vtx[1].vout.size(); i++) {
+
+                        LogPrintf("CheckBlock() : i=%d , scriptPubKey  %s\n", i,  vtx[1].vout[i].scriptPubKey.ToString().c_str()); 
+                        LogPrintf("CheckBlock() : i=%d , nValue  %d\n", i, vtx[1].vout[i].nValue); 
+
+                        if(i==1){
+                            CTxDestination address10;
+                            ExtractDestination(vtx[1].vout[i].scriptPubKey, address10);
+                            CHexlanAddress address2(address10);
+                            LogPrintf("CheckBlock() : vout[i].scriptPubKey ( %s )  nHeight %d. \n",  address2.ToString().c_str(), pindexBest->nHeight+1);
+                        }
+
+                        if(i==2){
+                            CTxDestination address11;
+                            ExtractDestination(vtx[1].vout[i].scriptPubKey, address11);
+                            CHexlanAddress address2(address11);
+                            LogPrintf("CheckBlock() : vout[i].scriptPubKey ( %s )  nHeight %d. \n",  address2.ToString().c_str(), pindexBest->nHeight+1);
+                        }
+
                         if(vtx[1].vout[i].nValue == masternodePaymentAmount )
                             foundPaymentAmount = true;
                         if(vtx[1].vout[i].scriptPubKey == payee )
