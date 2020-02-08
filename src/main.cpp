@@ -2584,20 +2584,18 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         LogPrintf("CheckBlock() : i=%d , scriptPubKey  %s\n", i,  vtx[1].vout[i].scriptPubKey.ToString().c_str()); 
                         LogPrintf("CheckBlock() : i=%d , nValue  %d\n", i, vtx[1].vout[i].nValue); 
 
-                        if(i==1){
-                            CTxDestination address10;
-                            ExtractDestination(vtx[1].vout[i].scriptPubKey, address10);
-                            CHexlanAddress address2(address10);
-                            LogPrintf("CheckBlock() : vout[i].scriptPubKey ( %s )  nHeight %d. \n",  address2.ToString().c_str(), pindexBest->nHeight+1);
-                        }
-
-                        if(i==2){
+                        
+                        if(i!=0){
                             CTxDestination address11;
                             ExtractDestination(vtx[1].vout[i].scriptPubKey, address11);
                             CHexlanAddress address2(address11);
                             LogPrintf("CheckBlock() : vout[i].scriptPubKey ( %s )  nHeight %d. \n",  address2.ToString().c_str(), pindexBest->nHeight+1);
                             mnRewardPayee = address2;
                         }
+
+
+
+
 
                         if(vtx[1].vout[i].nValue == masternodePaymentAmount )
                             foundPaymentAmount = true;
@@ -2619,6 +2617,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
 
                     std::vector<CMasternode> vMasternodes = mnodeman.GetFullMasternodeVector();
+                    bool isPayeeMNode=false;
 
                     BOOST_FOREACH(CMasternode& mn, vMasternodes)
                         {
@@ -2633,7 +2632,10 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                             ExtractDestination(pubkey, address1);
                             CHexlanAddress address2(address1);
 
-                            if(mnRewardPayee == address2) LogPrintf("CheckBlock() : ========== OOOOOOOOOKKK!!!!!!!. \n");
+                            if(mnRewardPayee == address2) {
+                                isPayeeMNode = true;
+                                LogPrintf("CheckBlock() : ========== OOOOOOOOOKKK!!!!!!!. \n");
+                            }
                             else LogPrintf("CheckBlock() : ********** NOOOOOOOOOOOOOO!!!!!!!. \n");
                             
                         }
