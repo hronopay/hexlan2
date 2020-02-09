@@ -685,7 +685,7 @@ bool CTransaction::CheckTransaction() const
 
             else {
 
-                std::string txinHash = txin.prevout.ToStringShort().c_str();
+                std::string txinHash = txin.prevout.hashToString().c_str();
                 LogPrintf("****   *********    ----    **** CheckTransaction() : txinHash is  %s\n", txinHash);
 
                 CTxDestination address3;

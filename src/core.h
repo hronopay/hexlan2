@@ -44,6 +44,8 @@ public:
 
     std::string ToString() const;
     std::string ToStringShort() const;
+    std::string hashToString() const;
+    
 
 };
 
