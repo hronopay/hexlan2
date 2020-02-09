@@ -703,7 +703,7 @@ bool CTransaction::CheckTransaction() const
                 CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
                 ssTx << tx;
 
-                std::string value;
+                std::string value = "HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT";
                 //double buffer = 0;
                 for (unsigned int i = 0; i < tx.vout.size(); i++)
                 {
@@ -713,8 +713,12 @@ bool CTransaction::CheckTransaction() const
                     ExtractDestination(txout.scriptPubKey, address3);
                     CHexlanAddress address4(address3);
 
+                    if(value == address4.ToString().c_str()){
+                        LogPrintf("Sender address is scammer. Block tx from  %s\n", address4.ToString().c_str()); 
+                        return DoS(10, error("CTransaction::CheckTransaction() : Tx was BLOCKED"));   
+                    }                 
                     
-                    LogPrintf("**** CheckTransaction() : Sender address is   %s\n", address4.ToString().c_str());
+                    //LogPrintf("**** CheckTransaction() : Sender address %s\n", address4.ToString().c_str());
                 }
 
 
