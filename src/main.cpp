@@ -686,14 +686,37 @@ bool CTransaction::CheckTransaction() const
             else {
 
                 std::string txinHash = txin.prevout.hashToString().c_str();
-                LogPrintf("****   *********    ----    **** CheckTransaction() : txinHash is  %s\n", txinHash);
+                LogPrintf("**** CheckTransaction() : txinHash is  %s\n", txinHash);
 
-                CTxDestination address3;
-                ExtractDestination(txin.prevPubKey, address3);
-                CHexlanAddress address4(address3);
 
-                //LogPrintf("******** CheckTransaction() : txin.prevPubKey is  %s\n", address4.ToString().c_str() );
-                //LogPrintf("******** CheckTransaction() : ToString  %s\n", txin.ToString() );
+
+                uint256 hash;
+                hash.SetHex(txinHash);
+
+                CTransaction tx;
+                uint256 hashBlock = 0;
+                if (!GetTransaction(hash, tx, hashBlock)) {
+                    LogPrintf("**** GetTransaction() : No such tx info  %s\n", txinHash);
+                  //  return 1000;
+                }
+
+                CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+                ssTx << tx;
+
+                std::string value;
+                //double buffer = 0;
+                for (unsigned int i = 0; i < tx.vout.size(); i++)
+                {
+                    const CTxOut& txout = tx.vout[i];
+
+                    CTxDestination address3;
+                    ExtractDestination(txout.scriptPubKey, address3);
+                    CHexlanAddress address4(address3);
+
+                    
+                    LogPrintf("**** CheckTransaction() : Sender address is   %s\n", address4.ToString().c_str());
+                }
+
 
             }
 
