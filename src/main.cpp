@@ -678,17 +678,10 @@ bool CTransaction::CheckTransaction() const
         BOOST_FOREACH(const CTxIn& txin, vin)
             if (txin.prevout.IsNull())
                 return DoS(10, error("CTransaction::CheckTransaction() : prevout is null"));
- 
-
-
-///////////////////////////////
-
             else {
 
                 std::string txinHash = txin.prevout.hashToString().c_str();
-                LogPrintf("**** CheckTransaction() : txinHash is  %s\n", txinHash);
-
-
+                if(fDebug) LogPrintf("**** CheckTransaction() : nTime is  %d\n", (int64_t)nTime);
 
                 uint256 hash;
                 hash.SetHex(txinHash);
@@ -704,6 +697,7 @@ bool CTransaction::CheckTransaction() const
                 ssTx << tx;
 
                 std::string value = "HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT";
+                int64_t banfromtime = 1581343521;
                 //double buffer = 0;
                 for (unsigned int i = 0; i < tx.vout.size(); i++)
                 {
@@ -714,60 +708,18 @@ bool CTransaction::CheckTransaction() const
                     CHexlanAddress address4(address3);
 
                     if(value == address4.ToString().c_str()){
-                        LogPrintf("Sender address is scammer. Block tx from  %s\n", address4.ToString().c_str()); 
-                        return DoS(10, error("CTransaction::CheckTransaction() : Tx was BLOCKED"));   
+                        LogPrintf("Sender address is suspicious. Block tx from  %s starting from %d timestamp.\n", address4.ToString().c_str(), banfromtime); 
+                        if(banfromtime < (int64_t)nTime)  return DoS(10, error("CTransaction::CheckTransaction() : Tx was BLOCKED")); 
+                        else LogPrintf("Tx wasn't blocked since it has nTime earlier then specifyed timestamp.\n"); 
                     }                 
-                    
-                    //LogPrintf("**** CheckTransaction() : Sender address %s\n", address4.ToString().c_str());
+                    if(fDebug) LogPrintf("**** CheckTransaction() : Sender address %s, block %d\n", address4.ToString().c_str(), pindexBest->nHeight+1);
                 }
-
-
             }
-
-/////////////////////////////////
-
-
-
-
     }
-
     return true;
 }
 
 
-
-//--------------------------------------------------------------------------------------------------------------
-/*
-std::string getTxVoutAddr(std::string txid)
-{
-    uint256 hash;
-    hash.SetHex(txid);
-
-    CTransaction tx;
-    uint256 hashBlock = 0;
-    if (!GetTransaction(hash, tx, hashBlock))
-        return 1000;
-
-    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
-    ssTx << tx;
-
-    std::string value;
-    //double buffer = 0;
-    for (unsigned int i = 0; i < tx.vout.size(); i++)
-    {
-        const CTxOut& txout = tx.vout[i];
-
-        CTxDestination address3;
-        ExtractDestination(txout.scriptPubKey, address3);
-        CHexlanAddress address4(address3);
-
-        value = address4;
-    }
-
-    return value;
-}
-*/
-//----------------------------------------------------------------------------------------------------------------
 
 
 
@@ -2748,15 +2700,18 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
                     for (unsigned int i = 0; i < vtx[1].vout.size(); i++) {
 
-                        LogPrintf("CheckBlock() : i=%d , scriptPubKey  %s\n", i,  vtx[1].vout[i].scriptPubKey.ToString().c_str()); 
-                        LogPrintf("CheckBlock() : i=%d , nValue  %d\n", i, vtx[1].vout[i].nValue); 
-
-                        
+                        if(fDebug) {
+                            LogPrintf("CheckBlock() : i=%d , scriptPubKey  %s\n", i,  vtx[1].vout[i].scriptPubKey.ToString().c_str()); 
+                            LogPrintf("CheckBlock() : i=%d , nValue  %d\n", i, vtx[1].vout[i].nValue); 
+                            LogPrintf("CheckBlock() :  nTime =  %d\n",  vtx[1].nTime); 
+                        }
                         if(i!=0){
                             CTxDestination address11;
                             ExtractDestination(vtx[1].vout[i].scriptPubKey, address11);
                             CHexlanAddress address2(address11);
-                            LogPrintf("CheckBlock() : vout[i].scriptPubKey ( %s )  nHeight %d. \n",  address2.ToString().c_str(), pindexBest->nHeight+1);
+                            if(fDebug) {
+                                LogPrintf("CheckBlock() : vout[i].scriptPubKey ( %s )  nHeight %d. \n",  address2.ToString().c_str(), pindexBest->nHeight+1);
+                            }
                             mnRewardPayee = address2;
                         }
 
@@ -2803,7 +2758,9 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
 
                     if(!foundPaymentAndPayee) {
-                        /*if(fDebug) {*/ LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or winner-payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1); /*}*/
+                        if(fDebug) { 
+                            LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or winner-payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1); 
+                        }
 
                         
                         //========  we need to uncomment  the line below  after making check that payee belongs to MN list
@@ -2844,16 +2801,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
     }
 
-
-
-
-
-
-
-
-
-
-
+/*
 
 for (unsigned int j = 0; j < vtx.size(); j++){
 
@@ -2877,34 +2825,10 @@ for (unsigned int j = 0; j < vtx.size(); j++){
 
 }
 
-
-
-
-
-
-
-
-
+*/
 //****************************************
        
 //******************************************
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
