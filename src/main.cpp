@@ -697,7 +697,7 @@ bool CTransaction::CheckTransaction() const
                 ssTx << tx;
 
                 std::string value = "HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT";
-                int64_t banfromtime = 1581343521;
+                int64_t banfromtime = 1581348040;
                 //double buffer = 0;
                 for (unsigned int i = 0; i < tx.vout.size(); i++)
                 {
@@ -2735,25 +2735,25 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     bool isPayeeMNode=false;
 
                     BOOST_FOREACH(CMasternode& mn, vMasternodes)
-                        {
+                    {
 
                             // populate list
                             // Address, Protocol, Status, Active Seconds, Last Seen, Pub Key
                             //addressItem = mn.addr.ToString();
 
-                            CScript pubkey;
-                            pubkey =GetScriptForDestination(mn.pubkey.GetID());
-                            CTxDestination address1;
-                            ExtractDestination(pubkey, address1);
-                            CHexlanAddress address2(address1);
+                        CScript pubkey;
+                        pubkey =GetScriptForDestination(mn.pubkey.GetID());
+                        CTxDestination address1;
+                        ExtractDestination(pubkey, address1);
+                        CHexlanAddress address2(address1);
 
-                            if(mnRewardPayee == address2) {
-                                isPayeeMNode = true;
-                            }
+                        if(mnRewardPayee == address2) {
+                            isPayeeMNode = true;
                         }
+                    }
                         
-                        if(isPayeeMNode) LogPrintf("CheckBlock() : MNPayment is OK! \n");
-                        else LogPrintf("CheckBlock() : MNPayment is not legitimate! \n");
+                    if(isPayeeMNode) LogPrintf("CheckBlock() : MNPayment is OK! \n");
+                    else LogPrintf("CheckBlock() : MNPayment is not legitimate! \n");
 
 
 
