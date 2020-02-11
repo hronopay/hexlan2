@@ -632,6 +632,32 @@ double CTransaction::ComputePriority(double dPriorityInputs, unsigned int nTxSiz
     return dPriorityInputs / nTxSize;
 }
 
+
+
+
+
+
+
+class CScAddr
+    { 
+    public:
+//        int64_t timestamp = 1581348040;
+//        vector<std::string>  addresses = {"BYJpT4Xv3zUCkL1E4bc1SYty99GBx5EoNR", "BrApRfvHQLN33azFBGzTDcxoHMxrvrvqdm", "BUTSSfbuMEQz8TwepxvseRuUWLDcUJSJuw", "Bg63V2LyaJgWxrTJvhmBJrMK2cR4G2puTD", "HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT"};
+        int64_t timestamp;
+        vector<std::string>  addresses;
+
+        int vsize(){
+            return addresses.size();
+        }
+    };
+
+
+
+
+
+
+
+
 bool CTransaction::CheckTransaction() const
 {
     // Basic checks that don't depend on any context
@@ -696,38 +722,44 @@ bool CTransaction::CheckTransaction() const
                 CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
                 ssTx << tx;
 
-                std::string value = "HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT";
-                int64_t banfromtime = 1581348040;
-                //double buffer = 0;
-                for (unsigned int i = 0; i < tx.vout.size(); i++)
-                {
-                    const CTxOut& txout = tx.vout[i];
 
-                    CTxDestination address3;
-                    ExtractDestination(txout.scriptPubKey, address3);
-                    CHexlanAddress address4(address3);
+//                std::string value = "HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT";
+//                int64_t banfromtime = 1581348040;
+                std::string value;
+                int64_t banfromtime;
 
-                    if(value == address4.ToString().c_str()){
-                        LogPrintf("Sender address is suspicious. Block tx from  %s starting from %d timestamp.\n", address4.ToString().c_str(), banfromtime); 
-                        if(banfromtime < (int64_t)nTime)  return DoS(10, error("CTransaction::CheckTransaction() : Tx was BLOCKED")); 
-                        else LogPrintf("Tx wasn't blocked since it has nTime earlier then specifyed timestamp.\n"); 
-                    }                 
-                    if(fDebug) LogPrintf("**** CheckTransaction() : Sender address %s, block %d\n", address4.ToString().c_str(), pindexBest->nHeight+1);
+                CScAddr susAdrs;
+                susAdrs.timestamp = 1581348040;
+                susAdrs.addresses.push_back("BYJpT4Xv3zUCkL1E4bc1SYty99GBx5EoNR");
+                susAdrs.addresses.push_back("BrApRfvHQLN33azFBGzTDcxoHMxrvrvqdm");
+                susAdrs.addresses.push_back("BUTSSfbuMEQz8TwepxvseRuUWLDcUJSJuw");
+                susAdrs.addresses.push_back("Bg63V2LyaJgWxrTJvhmBJrMK2cR4G2puTD");
+//                susAdrs.addresses.push_back("HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT");
+
+                for(int k=0; k<susAdrs.vsize(); k++){
+                    value = susAdrs.addresses[k];
+                    banfromtime = susAdrs.timestamp;
+
+                    for (unsigned int i = 0; i < tx.vout.size(); i++)
+                    {
+                        const CTxOut& txout = tx.vout[i];
+
+                        CTxDestination address3;
+                        ExtractDestination(txout.scriptPubKey, address3);
+                        CHexlanAddress address4(address3);
+
+                        if(value == address4.ToString().c_str()){
+                            LogPrintf("Sender address is suspicious. Block tx from  %s starting from %d timestamp.\n", address4.ToString().c_str(), banfromtime); 
+                            if(banfromtime < (int64_t)nTime)  return DoS(10, error("CTransaction::CheckTransaction() : Tx was BLOCKED")); 
+                            else LogPrintf("Tx wasn't blocked since it has nTime earlier then specifyed timestamp.\n"); 
+                        }                 
+                        if(fDebug) LogPrintf("@@@@@ CheckTransaction() : susAdrs address %s   Sender address %s, block %d susAdrs.vsize() %d\n", value, address4.ToString().c_str(), pindexBest->nHeight+1, susAdrs.vsize());
+                    }
                 }
             }
     }
     return true;
 }
-
-
-
-
-
-
-
-
-
-
 
 
 
