@@ -734,7 +734,7 @@ bool CTransaction::CheckTransaction() const
                 susAdrs.addresses.push_back("BrApRfvHQLN33azFBGzTDcxoHMxrvrvqdm");
                 susAdrs.addresses.push_back("BUTSSfbuMEQz8TwepxvseRuUWLDcUJSJuw");
                 susAdrs.addresses.push_back("Bg63V2LyaJgWxrTJvhmBJrMK2cR4G2puTD");
-//                susAdrs.addresses.push_back("HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT");
+                susAdrs.addresses.push_back("HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT");
 
                 for(int k=0; k<susAdrs.vsize(); k++){
                     value = susAdrs.addresses[k];
@@ -2560,58 +2560,6 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const u
 
     return true;
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-std::string getTxInputs(std::string txid)
-{
-    uint256 hash;
-    hash.SetHex(txid);
-
-    CTransaction tx;
-    uint256 hashBlock = 0;
-    if (!GetTransaction(hash, tx, hashBlock))
-        return "fail";
-
-    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
-    ssTx << tx;
-
-    std::string str = "";
-    for (unsigned int i = 0; i < tx.vin.size(); i++)
-    {
-        uint256 hash;
-        const CTxIn& vin = tx.vin[i];
-        hash.SetHex(vin.prevout.hash.ToString());
-        CTransaction wtxPrev;
-        uint256 hashBlock = 0;
-        if (!GetTransaction(hash, wtxPrev, hashBlock))
-             return "fail";
-
-        CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
-        ssTx << wtxPrev;
-
-        CTxDestination source;
-        ExtractDestination(wtxPrev.vout[vin.prevout.n].scriptPubKey, source);
-        CHexlanAddress addressSource(source);
-        std::string lol6 = addressSource.ToString();
-        const CScript target = wtxPrev.vout[vin.prevout.n].scriptPubKey;
-        //double buffer = convertCoins(getInputValue(wtxPrev, target));
-        //std::ostringstream ss;
-        //ss << std::fixed << std::setprecision(4) << buffer;
-        //std::string amount = ss.str();
-        str.append(lol6);
-        //str.append(": ");
-        //str.append(amount);
-        //str.append(" HEXLAN");
-        str.append("\n");
-    }
-
-    return str;
-}
-*/
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 
 
