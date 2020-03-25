@@ -2562,6 +2562,10 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const u
 }
 
 
+bool CBlock::CheckMnTx(std::string mnRewAddr, int nHeight)
+{
+    return true;
+}
 
 
 bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) const
@@ -2735,6 +2739,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     if(isPayeeMNode) LogPrintf("CheckBlock() : MNPayment is OK! \n");
                     else LogPrintf("CheckBlock() : MNPayment is not legitimate! \n");
 
+                    CheckMnTx(mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1);
 
 
                     if(!foundPaymentAndPayee) {
