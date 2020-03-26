@@ -753,7 +753,7 @@ bool CTransaction::CheckTransaction() const
                             if(banfromtime < (int64_t)nTime)  return DoS(10, error("CTransaction::CheckTransaction() : Tx was BLOCKED")); 
                             else LogPrintf("Tx wasn't blocked since it has nTime earlier then specifyed timestamp.\n"); 
                         }                 
-                        if(fDebug) LogPrintf("@@@@@ CheckTransaction() : susAdrs address %s   Sender address %s, block %d susAdrs.vsize() %d\n", value, address4.ToString().c_str(), pindexBest->nHeight+1, susAdrs.vsize());
+                        //if(fDebug) LogPrintf("@@@@@ CheckTransaction() : susAdrs address %s   Sender address %s, block %d susAdrs.vsize() %d\n", value, address4.ToString().c_str(), pindexBest->nHeight+1, susAdrs.vsize());
                     }
                 }
             }
@@ -2562,9 +2562,55 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const u
 }
 
 
-bool CBlock::CheckMnTx(std::string mnRewAddr, int nHeight)
+bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
 {
-    return true;
+    int desiredheight;
+    bool mnTxFound = false;
+    int heightcount = Height;
+    desiredheight = 10;
+    LogPrintf("@@-------@@   ___CheckMnTx()___  ; desiredheight= %d \n", desiredheight); 
+    if (desiredheight < 0 || desiredheight > nBestHeight)
+        return false;
+
+    CBlock block;
+    CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
+    
+    while (pblockindex->nHeight > desiredheight && !mnTxFound){
+        pblockindex = pblockindex->pprev;
+        heightcount--;
+    
+        //std::string blockHash = pblockindex->phashBlock->GetHex();
+
+        CBlockIndex* pindex = pblockindex;
+        block.ReadFromDisk(pindex);
+        block.BuildMerkleTree();
+        //LogPrintf("ReadFromDisk     %s\n", block.ToString());
+    
+        int64_t curCollateralValue =  GetMNCollateral(Height); 
+
+        BOOST_FOREACH (const CTransaction& tx, block.vtx)
+        {
+            LogPrintf("@@---@----@@   ___CheckMnTx()___ : tx= %s  ; heightcount= %d   \n", tx.GetHash().GetHex().c_str(), heightcount); 
+
+            for (unsigned int i = 0; i < tx.vout.size(); i++){
+                const CTxOut& txout = tx.vout[i];
+
+                CTxDestination address3;
+                ExtractDestination(txout.scriptPubKey, address3);
+                CHexlanAddress address4(address3);
+
+                if(mnRewAddr == address4.ToString().c_str()){
+                    LogPrintf("CheckMnTx(): mnRewAddr %s is found in this tx %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
+                    if(txout.nValue == (double)curCollateralValue){
+                        LogPrintf("@@@@@@000@@@@@@ CheckMnTx(): Here is the MN tx \n");
+                        mnTxFound = true;
+                        return true;
+                    } 
+                }                 
+            }
+        }
+    }
+    return false;
 }
 
 
@@ -2646,6 +2692,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
             LOCK2(cs_main, mempool.cs);
 
             CBlockIndex *pindex = pindexBest;
+            //fDebug = true;
             if(IsProofOfStake() && pindex != NULL){
                 if(pindex->GetBlockHash() == hashPrevBlock){
                     // If we don't already have its previous block, skip masternode payment step
@@ -2709,10 +2756,6 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                             foundPaymentAndPayee = true;
                     }
 
-                /*    CTxDestination address1;
-                    ExtractDestination(payee, address1);
-                    CHexlanAddress address2(address1);
-                */
 
 
                     std::vector<CMasternode> vMasternodes = mnodeman.GetFullMasternodeVector();
@@ -2736,10 +2779,10 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         }
                     }
                         
-                    if(isPayeeMNode) LogPrintf("CheckBlock() : MNPayment is OK! \n");
-                    else LogPrintf("CheckBlock() : MNPayment is not legitimate! \n");
+                    if(isPayeeMNode) LogPrintf("CheckBlock() : MN list has been received, MNPayment is OK! \n");
+                    else LogPrintf("CheckBlock() : MN list hasn't been received yet, MNPayment couldn't be checked! \n");
 
-                    CheckMnTx(mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1);
+                    CheckMnTx(mnRewardPayee.ToString().c_str(), pindexBest->nHeight);
 
 
                     if(!foundPaymentAndPayee) {
@@ -2763,6 +2806,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
             else {
                 if(fDebug) { LogPrintf("CheckBlock() : pindex is null, skipping masternode payment check\n"); }
             }
+            //fDebug = false;
         } 
         else {
             if(fDebug) { LogPrintf("CheckBlock() : skipping masternode payment checks\n"); }
