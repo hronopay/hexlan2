@@ -54,6 +54,10 @@ int nCoinbaseMaturity = 5;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 
+int lastMnCheckDepth=0;
+vector<std::string>  supposedMnList;
+
+
 uint256 nBestChainTrust = 0;
 uint256 nBestInvalidTrust = 0;
 
@@ -2567,7 +2571,8 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
     int desiredheight;
     bool mnTxFound = false;
     int heightcount = Height;
-    desiredheight =  10 + CollateralChangeBlockHeight(Height); 
+    desiredheight = CollateralChangeBlockHeight(Height)-200; // first check
+    if(lastMnCheckDepth) desiredheight = lastMnCheckDepth; // next checks
     LogPrintf("@@-----@@   ___CheckMnTx()___  ; desiredheight= %d \n", desiredheight); 
     if (desiredheight < 0 || desiredheight > nBestHeight)
         return false;
@@ -2590,7 +2595,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
 
         BOOST_FOREACH (const CTransaction& tx, block.vtx)
         {
-            LogPrintf("@@---@----@@   ___CheckMnTx()___ : tx= %s  ; heightcount= %d   \n", tx.GetHash().GetHex().c_str(), heightcount); 
+            //LogPrintf("@@---@----@@   ___CheckMnTx()___ : tx= %s  ; heightcount= %d   \n", tx.GetHash().GetHex().c_str(), heightcount); 
 
             for (unsigned int i = 0; i < tx.vout.size(); i++){
                 const CTxOut& txout = tx.vout[i];
@@ -2599,17 +2604,17 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
                 ExtractDestination(txout.scriptPubKey, address3);
                 CHexlanAddress address4(address3);
 
-                if(mnRewAddr == address4.ToString().c_str() && txout.nValue == (double)curCollateralValue){
-                    LogPrintf("CheckMnTx(): mnRewAddr %s is found in this Collateral tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
-                    return true;
+                if(txout.nValue == (double)curCollateralValue){
+                    LogPrintf("CheckMnTx(): probably Collateral tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
+                    supposedMnList.push_back(address4.ToString().c_str());
+                    //return true;
                 }                 
+
+                lastMnCheckDepth = Height; // next time this will be the depth of check
             }
         }
     }
-    return false;
-
-    //  Изменить возвращаемое значение
-    //  Прогнать проверку на колетерал и вернуть вектор из тех адресов нод, которые соберутся
+    return true;
 }
 
 
@@ -2781,11 +2786,24 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     if(isPayeeMNode) LogPrintf("CheckBlock() : MN list has been received, MNPayment is OK! \n");
                     else LogPrintf("CheckBlock() : MN list hasn't been received yet, MNPayment couldn't be checked! \n");
 
-                    if(CheckMnTx(mnRewardPayee.ToString().c_str(), pindexBest->nHeight)){
-                        LogPrintf("CheckMnTx() : TRUE \n");
+                    int lastHeight = pindexBest->nHeight;
+                    std::string rewPayee = mnRewardPayee.ToString().c_str();
+
+                    bool foundInList=false;
+
+                    for(int k=0; k<supposedMnList.size(); k++){
+                        if(rewPayee == supposedMnList[k]) foundInList = true;
+                    }
+                    if(!foundInList) {
+                        CheckMnTx(rewPayee, lastHeight);
+                    }
+                    for(int k=0; k<supposedMnList.size(); k++){
+                        if(rewPayee == supposedMnList[k]) foundInList = true;
                     }
 
-
+                    if(!foundInList) LogPrintf("CheckBlock() : CheckMnTx didn't find the tx. \n");
+                    else  LogPrintf("CheckBlock() : ----CheckMnTx has found the tx, MN is OK---- \n");
+                    
                     if(!foundPaymentAndPayee) {
                         if(fDebug) { 
                             LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or winner-payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1); 
