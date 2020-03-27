@@ -2571,7 +2571,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
     int desiredheight;
     bool mnTxFound = false;
     int heightcount = Height;
-    desiredheight = CollateralChangeBlockHeight(Height)-200; // first check
+    desiredheight = CollateralChangeBlockHeight(Height)-200 ? CollateralChangeBlockHeight(Height)-200 : 1 ; // first check
     if(lastMnCheckDepth) desiredheight = lastMnCheckDepth; // next checks
     LogPrintf("@@-----@@   ___CheckMnTx()___  ; desiredheight= %d \n", desiredheight); 
     if (desiredheight < 0 || desiredheight > nBestHeight)
