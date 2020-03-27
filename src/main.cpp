@@ -2571,9 +2571,12 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
     int desiredheight;
     bool mnTxFound = false;
     int heightcount = Height;
-    desiredheight = (CollateralChangeBlockHeight(Height)-200) > 1 ? (CollateralChangeBlockHeight(Height)-200) : 1 ; // first check
+    int curCollateralValue =  (int)GetMNCollateral(Height); 
+    
+    desiredheight = (CollateralChangeBlockHeight(Height)-200) > 1 ? (CollateralChangeBlockHeight(Height)-200) : 2 ; // first check
     if(lastMnCheckDepth) desiredheight = lastMnCheckDepth; // next checks
-    LogPrintf("@@-----@@   ___CheckMnTx()___  ; desiredheight= %d \n", desiredheight); 
+    
+    LogPrintf("@@-----@@   ___CheckMnTx()___  ; desiredheight= %d  Collateral = %d \n", desiredheight, curCollateralValue); 
     if (desiredheight < 0 || desiredheight > nBestHeight)
         return false;
 
@@ -2591,7 +2594,6 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
         block.BuildMerkleTree();
         //LogPrintf("ReadFromDisk     %s\n", block.ToString());
     
-        int64_t curCollateralValue =  GetMNCollateral(Height); 
 
         BOOST_FOREACH (const CTransaction& tx, block.vtx)
         {
@@ -2604,7 +2606,10 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
                 ExtractDestination(txout.scriptPubKey, address3);
                 CHexlanAddress address4(address3);
 
-                if(txout.nValue == (double)curCollateralValue){
+                int val = (int)txout.nValue;
+                LogPrintf("CheckMnTx(): (int)txout.nValue: %d \n", val);
+
+                if((int)txout.nValue == curCollateralValue){
                     LogPrintf("CheckMnTx(): probably Collateral tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
                     supposedMnList.push_back(address4.ToString().c_str());
                     //return true;
@@ -2799,6 +2804,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     }
                     for(int k=0; k<supposedMnList.size(); k++){
                         if(rewPayee == supposedMnList[k]) foundInList = true;
+                        LogPrintf("CheckBlock() : k= %d , supposedMnList[k]= %s \n", k, supposedMnList[k]);
                     }
 
                     if(!foundInList) LogPrintf("CheckBlock() : CheckMnTx didn't find the tx. \n");
