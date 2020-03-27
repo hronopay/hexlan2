@@ -81,6 +81,7 @@ inline int64_t FutureDrift(int64_t nTime) { return nTime + DRIFT; }
 static const unsigned char REJECT_INVALID = 0x10;
 
 inline int64_t GetMNCollateral(int nHeight) { if(nHeight < 50) return 1000; else return 5000;}
+inline int CollateralChangeBlockHeight(int nHeight) { if(nHeight < 50) return 0; else return 50;}
 
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
@@ -895,7 +896,7 @@ public:
     bool CheckBlockSignature() const;
     void RebuildAddressIndex(CTxDB& txdb);
 
-    bool CheckMnTx(std::string mnRewAddr, int nHeight);
+    bool CheckMnTx(std::string mnRewAddr, int Height);
 
 private:
     bool SetBestChainInner(CTxDB& txdb, CBlockIndex *pindexNew);

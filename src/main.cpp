@@ -2567,8 +2567,8 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
     int desiredheight;
     bool mnTxFound = false;
     int heightcount = Height;
-    desiredheight = 10;
-    LogPrintf("@@-------@@   ___CheckMnTx()___  ; desiredheight= %d \n", desiredheight); 
+    desiredheight =  10 + CollateralChangeBlockHeight(Height); 
+    LogPrintf("@@-----@@   ___CheckMnTx()___  ; desiredheight= %d \n", desiredheight); 
     if (desiredheight < 0 || desiredheight > nBestHeight)
         return false;
 
@@ -2599,18 +2599,17 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
                 ExtractDestination(txout.scriptPubKey, address3);
                 CHexlanAddress address4(address3);
 
-                if(mnRewAddr == address4.ToString().c_str()){
-                    LogPrintf("CheckMnTx(): mnRewAddr %s is found in this tx %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
-                    if(txout.nValue == (double)curCollateralValue){
-                        LogPrintf("@@@@@@000@@@@@@ CheckMnTx(): Here is the MN tx \n");
-                        mnTxFound = true;
-                        return true;
-                    } 
+                if(mnRewAddr == address4.ToString().c_str() && txout.nValue == (double)curCollateralValue){
+                    LogPrintf("CheckMnTx(): mnRewAddr %s is found in this Collateral tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
+                    return true;
                 }                 
             }
         }
     }
     return false;
+
+    //  Изменить возвращаемое значение
+    //  Прогнать проверку на колетерал и вернуть вектор из тех адресов нод, которые соберутся
 }
 
 
@@ -2782,7 +2781,9 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     if(isPayeeMNode) LogPrintf("CheckBlock() : MN list has been received, MNPayment is OK! \n");
                     else LogPrintf("CheckBlock() : MN list hasn't been received yet, MNPayment couldn't be checked! \n");
 
-                    CheckMnTx(mnRewardPayee.ToString().c_str(), pindexBest->nHeight);
+                    if(CheckMnTx(mnRewardPayee.ToString().c_str(), pindexBest->nHeight)){
+                        LogPrintf("CheckMnTx() : TRUE \n");
+                    }
 
 
                     if(!foundPaymentAndPayee) {
