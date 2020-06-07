@@ -67,6 +67,11 @@ public:
         }
     }
 
+    string getValue(int i)
+    {
+        return arr[i];
+    }
+
     int size(){
         return arr.size() * sizeof(MnAdr);
     }
@@ -127,7 +132,7 @@ public:
  
 
 
-
+/*
 int main()
 {
     // make vector supposedMnList  and fill the data in vector supposedMnList
@@ -164,3 +169,4 @@ int main()
     return (0);
     //return a.exec();
 }
+*/

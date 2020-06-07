@@ -56,7 +56,6 @@ CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 
 int lastMnCheckDepth=1;
-//vector<std::string>  supposedMnList;
 FindMnList supposedMnList;
 
 
@@ -2613,7 +2612,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
 
                 if(val == curCollateralValue){
                     LogPrintf("CheckMnTx(): probably Collateral tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
-                    supposedMnList.push_back(address4.ToString().c_str());
+                    supposedMnList.vinit(address4.ToString().c_str());
                     //return true;
                 }                 
             }
@@ -2798,14 +2797,14 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     bool foundInList=false;
 
                     for(int k=0; k<supposedMnList.size(); k++){
-                        if(rewPayee == supposedMnList[k]) foundInList = true;
+                        if(rewPayee == supposedMnList.getValue(k)) foundInList = true;
                     }
                     if(!foundInList) {
                         CheckMnTx(rewPayee, lastHeight);
                     }
                     for(int k=0; k<supposedMnList.size(); k++){
-                        if(rewPayee == supposedMnList[k]) foundInList = true;
-                        LogPrintf("CheckBlock() : k= %d , supposedMnList[k]= %s \n", k, supposedMnList[k]);
+                        if(rewPayee == supposedMnList.getValue(k)) foundInList = true;
+                        LogPrintf("CheckBlock() : k= %d , supposedMnList.getValue(k)= %s \n", k, supposedMnList.getValue(k));
                     }
 
                     if(!foundInList) LogPrintf("CheckBlock() : CheckMnTx didn't find the tx. \n");
