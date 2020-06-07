@@ -728,8 +728,8 @@ bool CTransaction::CheckTransaction() const
                 ssTx << tx;
 
 
-//                std::string value = "HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT";
-//                int64_t banfromtime = 1581348040;
+                //                std::string value = "HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT";
+                //                int64_t banfromtime = 1581348040;
                 std::string value;
                 int64_t banfromtime;
 
@@ -2573,6 +2573,8 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
     bool mnTxFound = false;
     int heightcount = Height;
     int curCollateralValue =  (int)GetMNCollateral(Height); 
+
+    LogPrintf("@@#######@@   ___CheckMnTx()___  ; starts \n"); 
     
     desiredheight = (CollateralChangeBlockHeight(Height)-200) > 1 ? (CollateralChangeBlockHeight(Height)-200) : 2 ; // first check
     if(lastMnCheckDepth > 1) desiredheight = lastMnCheckDepth; // next checks
