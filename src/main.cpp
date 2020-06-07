@@ -23,6 +23,7 @@
 #include "spork.h"
 #include "smessage.h"
 #include "util.h"
+#include "findmnlist.h"
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
@@ -54,8 +55,9 @@ int nCoinbaseMaturity = 5;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 
-int lastMnCheckDepth=0;
-vector<std::string>  supposedMnList;
+int lastMnCheckDepth=1;
+//vector<std::string>  supposedMnList;
+FindMnList supposedMnList;
 
 
 uint256 nBestChainTrust = 0;
@@ -2574,7 +2576,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
     int curCollateralValue =  (int)GetMNCollateral(Height); 
     
     desiredheight = (CollateralChangeBlockHeight(Height)-200) > 1 ? (CollateralChangeBlockHeight(Height)-200) : 2 ; // first check
-    if(lastMnCheckDepth) desiredheight = lastMnCheckDepth; // next checks
+    if(lastMnCheckDepth > 1) desiredheight = lastMnCheckDepth; // next checks
     
     LogPrintf("@@-----@@   ___CheckMnTx()___  ; desiredheight= %d  Collateral = %d \n", desiredheight, curCollateralValue); 
     if (desiredheight < 0 || desiredheight > nBestHeight)
@@ -2614,11 +2616,10 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
                     supposedMnList.push_back(address4.ToString().c_str());
                     //return true;
                 }                 
-
-                lastMnCheckDepth = Height; // next time this will be the depth of check
             }
         }
     }
+    lastMnCheckDepth = Height; // next time this will be the depth of check
     return true;
 }
 
