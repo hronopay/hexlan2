@@ -52,14 +52,6 @@ public:
         arr.erase(arr.begin());
     }
 
-/*
-    void vinit()
-    {
-        arr[0] = MnAdr("BYJpT4Xv3zUCkL1E4bc1SYty99GBx5EoNR");
-        arr[1] = MnAdr("BrApRfvHQLN33azFBGzTDcxoHMxrvrvqdm");
-        arr[2] = MnAdr("BUTSSfbuMEQz8TwepxvseRuUWLDcUJSJuw");
-        arr[3] = MnAdr("Bg63V2LyaJgWxrTJvhmBJrMK2cR4G2puTD");
-    } */
 
     void print()
     {
@@ -77,7 +69,7 @@ public:
     int size(){
         return arr.size() * sizeof(MnAdr);
     }
-
+ /*
     void txtWrite(string path){
         ofstream fout;
         fout.open(path, ios::out | ios::trunc );  
@@ -129,7 +121,7 @@ public:
         fin.close();
         return;
     }
-
+ */
 };
  
 
