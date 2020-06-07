@@ -1,4 +1,3 @@
-//#include <QCoreApplication>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -15,14 +14,17 @@ public:
     MnAdr(string scamadr){
         strcpy (sca, scamadr.c_str());
     }
+
     void f()
     {
         cout << "MnAdr::f - " << sca << endl;
     }
+
     string toString()
     {
         return sca;
     }
+
     int elemsize(){
         return sizeof(sca);
     }
@@ -69,7 +71,7 @@ public:
 
     string getValue(int i)
     {
-        return arr[i];
+        return arr[i].toString();
     }
 
     int size(){
