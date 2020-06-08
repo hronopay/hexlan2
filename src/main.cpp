@@ -2609,11 +2609,12 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
                 ExtractDestination(txout.scriptPubKey, address3);
                 CHexlanAddress address4(address3);
 
-                int val = (int)(txout.nValue/100000000);
+                double val = (double)(txout.nValue) / 100000000;
                 LogPrintf("CheckMnTx(): (int)txout.nValue: %d ^^^ curCollateralValue: %d \n", val, curCollateralValue);
 
-                if(curCollateralValue == val){
-                    //LogPrintf("CheckMnTx(): probably Collateral tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
+//                if( 100000000*curCollateralValue == txout.nValue ){
+                if( (double)curCollateralValue == val){
+                    LogPrintf("CheckMnTx(): probably %s is Collateral tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
                     supposedMnList.vinit(address4.ToString().c_str());
                     //return true;
                 } 
