@@ -2610,13 +2610,13 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
                 CHexlanAddress address4(address3);
 
                 int val = (int)(txout.nValue/100000000);
-                LogPrintf("CheckMnTx(): (int)txout.nValue: %d \n", val);
+                LogPrintf("CheckMnTx(): (int)txout.nValue: %d ^^^ curCollateralValue: %d \n", val, curCollateralValue);
 
-                if(val == curCollateralValue){
-                    LogPrintf("CheckMnTx(): probably Collateral tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
+                if(curCollateralValue == val){
+                    //LogPrintf("CheckMnTx(): probably Collateral tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
                     supposedMnList.vinit(address4.ToString().c_str());
                     //return true;
-                }                 
+                } 
             }
         }
     }

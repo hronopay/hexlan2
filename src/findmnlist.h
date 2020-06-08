@@ -67,7 +67,7 @@ public:
     }
 
     int size(){
-        return arr.size() * sizeof(MnAdr);
+        return arr.size()/* * sizeof(MnAdr)*/;
     }
  /*
     void txtWrite(string path){
