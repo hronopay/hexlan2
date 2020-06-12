@@ -29,6 +29,30 @@ public:
         return sizeof(sca);
     }
 };
+
+
+class MnTxHash
+{
+public:
+    char txha[65];
+    MnTxHash(string txhash){
+        strcpy (txha, txhash.c_str());
+    }
+
+    void f()
+    {
+        cout << "MnTxHash::f - " << txha << endl;
+    }
+
+    string toString()
+    {
+        return txha;
+    }
+
+    int elemsize(){
+        return sizeof(txha);
+    }
+};
  
 class FindMnList
 {
@@ -36,20 +60,24 @@ private:
  
 public:
     vector<MnAdr> arr;
+    vector<MnTxHash> txhash;
     FindMnList(){
         arr.push_back( MnAdr("0000000000000000000000000000000000") );
+        txhash.push_back( MnTxHash("0000000000000000000000000000000000000000000000000000000000000000") );
     }
 
     FindMnList(string adr){
         arr.push_back( MnAdr(adr) ); 
     }
 
-    void vinit(string adr){
+    void vinit(string adr, string hash){
         arr.push_back( MnAdr(adr) ); 
+        txhash.push_back( MnTxHash(hash) ); 
     }
 
     void eraseFirst(){
         arr.erase(arr.begin());
+        txhash.erase(txhash.begin());
     }
 
 
@@ -58,16 +86,27 @@ public:
         for(unsigned i = 0; i < arr.size(); ++i)
         {
             arr[i].f();
+            txhash[i].f();
         }
     }
 
-    string getValue(int i)
+    string getValueMn(int i)
     {
         return arr[i].toString();
     }
 
-    int size(){
+
+    string getValueHash(int i)
+    {
+        return txhash[i].toString();
+    }
+
+    int sizeMn(){
         return arr.size()/* * sizeof(MnAdr)*/;
+    }
+
+    int sizeHash(){
+        return txhash.size()/* * sizeof(MnAdr)*/;
     }
  /*
     void txtWrite(string path){
