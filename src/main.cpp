@@ -2807,7 +2807,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     }
                     for(int k=0; k<supposedMnList.sizeMn(); k++){
                         if(rewPayee == supposedMnList.getValueMn(k)) foundInList = true;
-                        LogPrintf("CheckBlock() : k= %d , supposedMnList.getValueMn(k)= %s \n", k, supposedMnList.getValueMn(k));
+                        LogPrintf("CheckBlock() : k= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", k, supposedMnList.getValueMn(k), supposedMnList.getValueHash(k));
                     }
 
                     if(!foundInList) LogPrintf("CheckBlock() : CheckMnTx didn't find the tx. \n");
