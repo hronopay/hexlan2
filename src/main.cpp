@@ -646,8 +646,6 @@ double CTransaction::ComputePriority(double dPriorityInputs, unsigned int nTxSiz
 class CScAddr
     { 
     public:
-//        int64_t timestamp = 1581348040;
-//        vector<std::string>  addresses = {"BYJpT4Xv3zUCkL1E4bc1SYty99GBx5EoNR", "BrApRfvHQLN33azFBGzTDcxoHMxrvrvqdm", "BUTSSfbuMEQz8TwepxvseRuUWLDcUJSJuw", "Bg63V2LyaJgWxrTJvhmBJrMK2cR4G2puTD", "HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT"};
         int64_t timestamp;
         vector<std::string>  addresses;
 
@@ -2570,7 +2568,6 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const u
 bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
 {
     int desiredheight;
-    bool mnTxFound = false;
     int heightcount = Height;
     int curCollateralValue =  (int)GetMNCollateral(Height); 
 
@@ -2586,7 +2583,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
     CBlock block;
     CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
     
-    while (pblockindex->nHeight > desiredheight && !mnTxFound){
+    while (pblockindex->nHeight > desiredheight){
         pblockindex = pblockindex->pprev;
         heightcount--;
     
@@ -2621,6 +2618,42 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
             }
         }
     }
+    //*****************************************************
+    // try to find out if the collateral has been spent already
+    //*****************************************************
+
+    // look for tx through the chain again from top to bottom
+    pblockindex = mapBlockIndex[hashBestChain];
+    heightcount = Height;
+
+    while (pblockindex->nHeight > desiredheight){
+        pblockindex = pblockindex->pprev;
+        heightcount--;
+    
+        //std::string blockHash = pblockindex->phashBlock->GetHex();
+
+        CBlockIndex* pindex = pblockindex;
+        block.ReadFromDisk(pindex);
+        block.BuildMerkleTree();
+        //LogPrintf("ReadFromDisk     %s\n", block.ToString());
+    
+
+        BOOST_FOREACH (const CTransaction& tx, block.vtx)
+        {
+            //LogPrintf("@@---@----@@   ___CheckMnTx()___ : tx= %s  ; heightcount= %d   \n", tx.GetHash().GetHex().c_str(), heightcount); 
+
+            for (unsigned int i = 0; i < tx.vin.size(); i++){
+                const CTxIn& txin = tx.vin[i];
+
+                for(int k=0; k<supposedMnList.sizeMn(); k++){
+                    if(txin.prevout.hash.ToString() == supposedMnList.getValueHash(k))  LogPrintf(  "CheckMnTx(): heightcount: %d @@@ prevout: %s \n", heightcount, txin.prevout.hash.ToString().c_str()  );
+                }
+                //if (heightcount % 100 == 1) LogPrintf(  "CheckMnTx(): heightcount: %d @@@ prevout: %s \n", heightcount, txin.prevout.hash.ToString().c_str()  );
+            }
+        }
+    }
+
+
     lastMnCheckDepth = Height; // next time this will be the depth of check
     return true;
 }
