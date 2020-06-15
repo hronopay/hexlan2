@@ -2622,6 +2622,12 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
     // try to find out if the collateral has been spent already
     //*****************************************************
 
+
+                    for(int kk=0; kk<supposedMnList.sizeMn(); kk++){
+                        LogPrintf("CheckBlock() : kk= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", kk, supposedMnList.getValueMn(kk), supposedMnList.getValueHash(kk));
+                    }
+
+
     // look for tx through the chain again from top to bottom
     pblockindex = mapBlockIndex[hashBestChain];
     heightcount = Height;
@@ -2646,7 +2652,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
                 const CTxIn& txin = tx.vin[i];
 
                 for(int k=0; k<supposedMnList.sizeMn(); k++){
-                    if(txin.prevout.hash.ToString() == supposedMnList.getValueHash(k))  LogPrintf(  "CheckMnTx(): heightcount: %d @@@ prevout: %s \n", heightcount, txin.prevout.hash.ToString().c_str()  );
+                    if(txin.prevout.hash.ToString() == supposedMnList.getValueHash(k))  LogPrintf(  "CheckMnTx(): k=%d heightcount: %d @@@ prevout: %s getValueHash: %s \n", k, heightcount, txin.prevout.hash.ToString().c_str(), supposedMnList.getValueHash(k)  );
                 }
                 //if (heightcount % 100 == 1) LogPrintf(  "CheckMnTx(): heightcount: %d @@@ prevout: %s \n", heightcount, txin.prevout.hash.ToString().c_str()  );
             }
