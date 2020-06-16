@@ -2622,6 +2622,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
     // try to find out if the collateral has been spent already
     //*****************************************************
 
+                    if(supposedMnList.sizeMn() > 1) supposedMnList.eraseFirst();
 
                     for(int kk=0; kk<supposedMnList.sizeMn(); kk++){
                         LogPrintf("CheckBlock() : kk= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", kk, supposedMnList.getValueMn(kk), supposedMnList.getValueHash(kk));
@@ -2652,7 +2653,8 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
                 const CTxIn& txin = tx.vin[i];
 
                 for(int k=0; k<supposedMnList.sizeMn(); k++){
-                    if(txin.prevout.hash.ToString() == supposedMnList.getValueHash(k))  LogPrintf(  "CheckMnTx(): k=%d heightcount: %d @@@ prevout: %s getValueHash: %s \n", k, heightcount, txin.prevout.hash.ToString().c_str(), supposedMnList.getValueHash(k)  );
+                    //if(txin.prevout.hash.ToString() == supposedMnList.getValueHash(k))  
+                    LogPrintf(  "CheckMnTx(): i=%d k=%d heightcount: %d @@@ prevout: %s getValueHash: %s \n", i, k, heightcount, txin.prevout.hash.ToString().c_str(), supposedMnList.getValueHash(k)  );
                 }
                 //if (heightcount % 100 == 1) LogPrintf(  "CheckMnTx(): heightcount: %d @@@ prevout: %s \n", heightcount, txin.prevout.hash.ToString().c_str()  );
             }
