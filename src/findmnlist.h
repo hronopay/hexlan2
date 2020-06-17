@@ -57,7 +57,6 @@ public:
 class FindMnList
 {
 private:
-    bool erasefirstisdone = false;
  
 public:
     vector<MnAdr> arr;
@@ -77,16 +76,8 @@ public:
     }
 
     void eraseFirst(){
-        if(!erasefirstisdone){
-            arr.erase(arr.begin());
-            txhash.erase(txhash.begin());
-            erasefirstisdone = true;
-        }
-        else {
-            LogPrintf("   ___eraseFirst()___  HAS BEEN ERASED ALREADY \n");
-        }
-
-        return;
+        arr.erase(arr.begin());
+        txhash.erase(txhash.begin());
     }
 
 
