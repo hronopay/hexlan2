@@ -2844,7 +2844,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         if(rewPayee == supposedMnList.getValueMn(k)) foundInList = true;
                     }
                     if(!foundInList) {
-                        CheckMnTx(rewPayee, lastHeight);
+                        CheckMnTx(rewPayee, lastHeight, false);
                     }
                     for(int k=0; k<supposedMnList.sizeMn(); k++){
                         if(rewPayee == supposedMnList.getValueMn(k)) foundInList = true;
