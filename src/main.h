@@ -896,7 +896,7 @@ public:
     bool CheckBlockSignature() const;
     void RebuildAddressIndex(CTxDB& txdb);
 
-    bool CheckMnTx(std::string mnRewAddr, int Height);
+    bool CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent);
 
 private:
     bool SetBestChainInner(CTxDB& txdb, CBlockIndex *pindexNew);

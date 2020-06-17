@@ -2565,7 +2565,7 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const u
 }
 
 
-bool CBlock::CheckMnTx(std::string mnRewAddr, int Height)
+bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent)
 {
     int desiredheight;
     int heightcount = Height;
