@@ -663,6 +663,7 @@ class CScAddr
 
 bool CTransaction::CheckTransaction() const
 {
+    LogPrintf("||||||**** CheckTransaction() : started ****|||||| \n");
     // Basic checks that don't depend on any context
     if (vin.empty())
         return DoS(10, error("CTransaction::CheckTransaction() : vin empty"));
