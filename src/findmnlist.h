@@ -92,6 +92,13 @@ public:
     }
 
 
+    void erase(int k){
+        arr.erase(arr.begin()+k);
+        txhash.erase(txhash.begin()+k);
+        return;
+    }
+
+
     void print()
     {
         for(unsigned i = 0; i < arr.size(); ++i)

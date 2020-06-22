@@ -2566,6 +2566,15 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const u
 }
 
 
+
+
+
+//-----------------------------------------------------------------------------------------------
+// ***** метод формирует вектор supposedMnList в котором содержатся все адреса текущих мастернод
+// ***** вектор состоит из адресов на которые был сделан перевод текущего коллатерала
+// ***** вторая часть метода проверяет, не был ли потрачен коллатерал к настоящему времени
+// ***** была ли запущена матернода на данном адресе - не проверяется
+//-----------------------------------------------------------------------------------------------
 bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent)
 {
     int desiredheight;
@@ -2574,8 +2583,14 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent)
 
     LogPrintf("@@#######@@   ___CheckMnTx()___  ; starts \n"); 
     
-    desiredheight = (CollateralChangeBlockHeight(Height)-200) > 1 ? (CollateralChangeBlockHeight(Height)-200) : 2 ; // first check
-    if(lastMnCheckDepth > 1) desiredheight = lastMnCheckDepth; // next checks
+    // first check
+    desiredheight = (CollateralChangeBlockHeight(Height)-200) > 1 ? (CollateralChangeBlockHeight(Height)-200) : 2 ; 
+    
+    // next checks
+    //  глобальная переменная  lastMnCheckDepth изначально = 1, в конце данного метода устанавливается в текущий номер блока
+    //  соответственно desiredheight переписывается когда метод вызывается повторно, чтобы не проверять блоки которые были уже 
+    //  проверены
+    if(lastMnCheckDepth > 1) desiredheight = lastMnCheckDepth; 
     
     LogPrintf("@@-----@@   ___CheckMnTx()___  ; desiredheight= %d  Collateral = %d \n", desiredheight, curCollateralValue); 
     if (desiredheight < 0 || desiredheight > nBestHeight)
@@ -2619,15 +2634,15 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent)
             }
         }
     }
-    //*****************************************************
-    // try to find out if the collateral has been spent already
-    //*****************************************************
+        //*****************************************************
+        // try to find out if the collateral has been spent already
+        //*****************************************************
 
-                    if(supposedMnList.sizeMn() > 1) supposedMnList.eraseFirst();
+    if(supposedMnList.sizeMn() > 1) supposedMnList.eraseFirst();
 
-                    for(int kk=0; kk<supposedMnList.sizeMn(); kk++){
-                        LogPrintf("CheckBlock() : kk= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", kk, supposedMnList.getValueMn(kk), supposedMnList.getValueHash(kk));
-                    }
+    for(int kk=0; kk<supposedMnList.sizeMn(); kk++){
+        LogPrintf("CheckBlock() : kk= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", kk, supposedMnList.getValueMn(kk), supposedMnList.getValueHash(kk));
+    }
 
 
     // look for tx through the chain again from top to bottom
@@ -2654,8 +2669,11 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent)
                 const CTxIn& txin = tx.vin[i];
 
                 for(int k=0; k<supposedMnList.sizeMn(); k++){
-                    if(txin.prevout.hash.ToString().c_str() == supposedMnList.getValueHash(k))  
+                    if(txin.prevout.hash.ToString().c_str() == supposedMnList.getValueHash(k)){
                         LogPrintf(  "CheckMnTx(): i=%d k=%d heightcount: %d @@@ prevout: %s getValueHash: %s \n", i, k, heightcount, txin.prevout.hash.ToString().c_str(), supposedMnList.getValueHash(k)  );
+                        supposedMnList.erase(k);
+                    }  
+                        
                 }
                 //if (heightcount % 100 == 1) LogPrintf(  "CheckMnTx(): heightcount: %d @@@ prevout: %s \n", heightcount, txin.prevout.hash.ToString().c_str()  );
             }
