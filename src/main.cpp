@@ -713,6 +713,8 @@ bool CTransaction::CheckTransaction() const
                 std::string txinHash = txin.prevout.hashToString().c_str();
                 if(fDebug) LogPrintf("**** CheckTransaction() : nTime is  %d\n", (int64_t)nTime);
 
+                LogPrintf("**** CheckTransaction() : txinHash is  %s\n", txinHash);
+
                 uint256 hash;
                 hash.SetHex(txinHash);
 
