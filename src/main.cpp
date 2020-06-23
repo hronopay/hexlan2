@@ -2623,7 +2623,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent)
                 CHexlanAddress address4(address3);
 
                 double val = (double)(txout.nValue) / 100000000;
-                LogPrintf("CheckMnTx(): (int)txout.nValue: %d ^^^ curCollateralValue: %d \n", val, curCollateralValue);
+                //LogPrintf("CheckMnTx(): (int)txout.nValue: %d ^^^ curCollateralValue: %d \n", val, curCollateralValue);
 
 //                if( 100000000*curCollateralValue == txout.nValue ){
                 if( (double)curCollateralValue == val){
@@ -2641,7 +2641,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent)
     if(supposedMnList.sizeMn() > 1) supposedMnList.eraseFirst();
 
     for(int kk=0; kk<supposedMnList.sizeMn(); kk++){
-        LogPrintf("CheckBlock() : kk= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", kk, supposedMnList.getValueMn(kk), supposedMnList.getValueHash(kk));
+        LogPrintf("CheckMnTx() : kk= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", kk, supposedMnList.getValueMn(kk), supposedMnList.getValueHash(kk));
     }
 
 
@@ -2846,12 +2846,14 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         ExtractDestination(pubkey, address1);
                         CHexlanAddress address2(address1);
 
+                        LogPrintf("CheckBlock() : BOOST_FOREACH(CMasternode& mn, vMasternodes) ( %s )  nHeight %d. \n",  address2.ToString().c_str(), pindexBest->nHeight+1);
+
                         if(mnRewardPayee == address2) {
                             isPayeeMNode = true;
                         }
                     }
                         
-                    if(isPayeeMNode) LogPrintf("CheckBlock() : MN list has been received, MNPayment is OK! \n");
+                    if(isPayeeMNode) LogPrintf("CheckBlock() : standart MN list has been received, MNPayment is OK! \n");
                     else LogPrintf("CheckBlock() : MN list hasn't been received yet, MNPayment couldn't be checked! \n");
 
                     int lastHeight = pindexBest->nHeight;
@@ -2867,20 +2869,23 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     }
                     for(int k=0; k<supposedMnList.sizeMn(); k++){
                         if(rewPayee == supposedMnList.getValueMn(k)) foundInList = true;
-                        LogPrintf("CheckBlock() : k= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", k, supposedMnList.getValueMn(k), supposedMnList.getValueHash(k));
+                        if(fDebug) LogPrintf("CheckBlock() : k= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", k, supposedMnList.getValueMn(k), supposedMnList.getValueHash(k));
                     }
 
-                    if(!foundInList) LogPrintf("CheckBlock() : CheckMnTx didn't find the tx. \n");
-                    else  LogPrintf("CheckBlock() : ----CheckMnTx has found the tx, MN is OK---- \n");
+                    if(!foundInList) LogPrintf("CheckBlock() : CheckMnTx didn't find the tx in supposedMnList. \n");
+                    else  {
+                        LogPrintf("CheckBlock() : ----CheckMnTx has found the tx, MN is OK---- \n");
+                        foundPaymentAndPayee = true;
+                    }
+
                     
                     if(!foundPaymentAndPayee) {
-                        if(fDebug) { 
+                        if(!fDebug) { 
                             LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or winner-payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1); 
                         }
-
                         
-                        //========  we need to uncomment  the line below  after making check that payee belongs to MN list
-                        //return DoS(100, error("CheckBlock() : Couldn't find masternode payment or winner payee"));
+                        //========  we need to uncomment  the line below  after making check (done!)
+                        return DoS(100, error("CheckBlock() : Couldn't find masternode payment or winner payee"));
 
                     } 
                     else {
