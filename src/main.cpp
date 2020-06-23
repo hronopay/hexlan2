@@ -2575,7 +2575,7 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const u
 // ***** вторая часть метода проверяет, не был ли потрачен коллатерал к настоящему времени
 // ***** была ли запущена матернода на данном адресе - не проверяется
 //-----------------------------------------------------------------------------------------------
-bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent)
+bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
 {
     int desiredheight;
     int heightcount = Height;
