@@ -65,15 +65,11 @@ public:
     vector<MnTxHash> txhash;
     FindMnList(){
         erasefirstisdone = false;
+        lastcollateral = 0;
         arr.push_back( MnAdr("0000000000000000000000000000000000") );
         txhash.push_back( MnTxHash("0000000000000000000000000000000000000000000000000000000000000000") );
     }
-/*
-    FindMnList(string adr){
-        erasefirstisdone = false;
-        arr.push_back( MnAdr(adr) ); 
-    }
-*/
+
     void reInitialyze(){
         if(erasefirstisdone){
             erasefirstisdone = false;
@@ -85,6 +81,14 @@ public:
         for(int k=(this->sizeMn()-1); k>0; k--){
             this->erase(k);
             LogPrintf("reInitialyze(): ERASE k=%d \n", k);
+        }
+    }
+
+    void checkCollateral(int currentColl){
+        if(!lastcollateral) lastcollateral = currentColl;
+        if(currentColl != lastcollateral) {
+            lastcollateral = currentColl;
+            this->reInitialyze();
         }
     }
 

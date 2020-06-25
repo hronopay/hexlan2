@@ -712,8 +712,8 @@ bool CTransaction::CheckTransaction() const
 
                 std::string txinHash = txin.prevout.hashToString().c_str();
                 if(fDebug) LogPrintf("**** CheckTransaction() : nTime is  %d\n", (int64_t)nTime);
-
                 if(fDebug) LogPrintf("**** CheckTransaction() : txinHash is  %s\n", txinHash);
+                supposedMnList.checkCollateral(CollateralChangeBlockHeight(pindexBest->nHeight));
 
                 for(int k=0; k<supposedMnList.sizeMn(); k++){
                     if(txinHash == supposedMnList.getValueHash(k)){
