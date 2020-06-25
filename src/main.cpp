@@ -663,7 +663,7 @@ class CScAddr
 
 bool CTransaction::CheckTransaction() const
 {
-    LogPrintf("||||||**** CheckTransaction() : started ****|||||| \n");
+    //LogPrintf("||||||**** CheckTransaction() : started ****|||||| \n");
     // Basic checks that don't depend on any context
     if (vin.empty())
         return DoS(10, error("CTransaction::CheckTransaction() : vin empty"));
@@ -713,7 +713,7 @@ bool CTransaction::CheckTransaction() const
                 std::string txinHash = txin.prevout.hashToString().c_str();
                 if(fDebug) LogPrintf("**** CheckTransaction() : nTime is  %d\n", (int64_t)nTime);
 
-                LogPrintf("**** CheckTransaction() : txinHash is  %s\n", txinHash);
+                if(fDebug) LogPrintf("**** CheckTransaction() : txinHash is  %s\n", txinHash);
 
                 for(int k=0; k<supposedMnList.sizeMn(); k++){
                     if(txinHash == supposedMnList.getValueHash(k)){
@@ -2659,11 +2659,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
         LogPrintf("CheckMnTx() : kk= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", kk, supposedMnList.getValueMn(kk), supposedMnList.getValueHash(kk));
     }
 
-    supposedMnList.reInitialyze();
-
-    for(int kk=0; kk<supposedMnList.sizeMn(); kk++){
-        LogPrintf("CheckMnTx() after reInitialyze : kk= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", kk, supposedMnList.getValueMn(kk), supposedMnList.getValueHash(kk));
-    }
+    //  supposedMnList.reInitialyze();
 
 
     // look for tx through the chain again from top to bottom
