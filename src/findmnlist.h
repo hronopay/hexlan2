@@ -58,6 +58,7 @@ class FindMnList
 {
 private:
     bool erasefirstisdone;
+    int lastcollateral;
  
 public:
     vector<MnAdr> arr;
@@ -67,10 +68,24 @@ public:
         arr.push_back( MnAdr("0000000000000000000000000000000000") );
         txhash.push_back( MnTxHash("0000000000000000000000000000000000000000000000000000000000000000") );
     }
-
+/*
     FindMnList(string adr){
         erasefirstisdone = false;
         arr.push_back( MnAdr(adr) ); 
+    }
+*/
+    void reInitialyze(){
+        if(erasefirstisdone){
+            erasefirstisdone = false;
+        }
+        for(int k=0; k<this->sizeMn(); k++){
+            arr[k] = MnAdr("0000000000000000000000000000000000");
+            txhash[k] = MnTxHash("0000000000000000000000000000000000000000000000000000000000000000");
+        }
+        for(int k=(this->sizeMn()-1); k>0; k--){
+            this->erase(k);
+            LogPrintf("reInitialyze(): ERASE k=%d \n", k);
+        }
     }
 
     void vinit(string adr, string hash){

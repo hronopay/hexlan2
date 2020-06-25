@@ -715,6 +715,19 @@ bool CTransaction::CheckTransaction() const
 
                 LogPrintf("**** CheckTransaction() : txinHash is  %s\n", txinHash);
 
+                for(int k=0; k<supposedMnList.sizeMn(); k++){
+                    if(txinHash == supposedMnList.getValueHash(k)){
+                        LogPrintf(  "CheckTransaction(): ERASE @@@ prevout: %s getValueHash: %s , k=%d \n", txinHash, supposedMnList.getValueHash(k), k  );
+                        supposedMnList.erase(k);
+                    }  
+                        
+                }
+
+
+
+
+
+
                 uint256 hash;
                 hash.SetHex(txinHash);
 
@@ -2586,7 +2599,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
     LogPrintf("@@#######@@   ___CheckMnTx()___  ; starts \n"); 
     
     // first check
-    desiredheight = (CollateralChangeBlockHeight(Height)-200) > 1 ? (CollateralChangeBlockHeight(Height)-200) : 2 ; 
+    desiredheight = (CollateralChangeBlockHeight(Height)-500) > 1 ? (CollateralChangeBlockHeight(Height)-500) : 2 ; 
     
     // next checks
     //  глобальная переменная  lastMnCheckDepth изначально = 1, в конце данного метода устанавливается в текущий номер блока
@@ -2644,6 +2657,12 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
 
     for(int kk=0; kk<supposedMnList.sizeMn(); kk++){
         LogPrintf("CheckMnTx() : kk= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", kk, supposedMnList.getValueMn(kk), supposedMnList.getValueHash(kk));
+    }
+
+    supposedMnList.reInitialyze();
+
+    for(int kk=0; kk<supposedMnList.sizeMn(); kk++){
+        LogPrintf("CheckMnTx() after reInitialyze : kk= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", kk, supposedMnList.getValueMn(kk), supposedMnList.getValueHash(kk));
     }
 
 
