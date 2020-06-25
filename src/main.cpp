@@ -70,6 +70,11 @@ bool fReindex = false;
 bool fAddrIndex = false;
 bool fHaveGUI = false;
 
+
+bool line2934=false;
+
+
+
 struct COrphanBlock {
     uint256 hashBlock;
     uint256 hashPrev;
@@ -663,7 +668,9 @@ class CScAddr
 
 bool CTransaction::CheckTransaction() const
 {
-    //LogPrintf("||||||**** CheckTransaction() : started ****|||||| \n");
+    if(line2934) LogPrintf("||||||**** CheckTransaction() : started -- line2934 = true (mn check) ****|||||| \n");
+    else LogPrintf("||||||**** CheckTransaction() : started -- line2934 = false ****|||||| \n");
+
     // Basic checks that don't depend on any context
     if (vin.empty())
         return DoS(10, error("CTransaction::CheckTransaction() : vin empty"));
@@ -712,7 +719,7 @@ bool CTransaction::CheckTransaction() const
 
                 std::string txinHash = txin.prevout.hashToString().c_str();
                 if(fDebug) LogPrintf("**** CheckTransaction() : nTime is  %d\n", (int64_t)nTime);
-                if(fDebug) LogPrintf("**** CheckTransaction() : txinHash is  %s\n", txinHash);
+                if(!fDebug) LogPrintf("**** CheckTransaction() : txinHash is  %s\n", txinHash);
                 supposedMnList.checkCollateral(CollateralChangeBlockHeight(pindexBest->nHeight));
 
                 for(int k=0; k<supposedMnList.sizeMn(); k++){
@@ -2931,8 +2938,11 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     // Check transactions
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
-        if (!tx.CheckTransaction())
+        line2934=true;
+        if (!tx.CheckTransaction()){
+            line2934=false;
             return DoS(tx.nDoS, error("CheckBlock() : CheckTransaction failed"));
+        }
 
         // ppcoin: check transaction timestamp
         if (GetBlockTime() < (int64_t)tx.nTime)
