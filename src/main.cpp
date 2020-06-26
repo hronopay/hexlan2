@@ -71,7 +71,7 @@ bool fAddrIndex = false;
 bool fHaveGUI = false;
 
 
-bool line2934=false;
+int line2934=1;
 
 
 
@@ -668,8 +668,7 @@ class CScAddr
 
 bool CTransaction::CheckTransaction() const
 {
-    if(line2934) LogPrintf("||||||**** CheckTransaction() : started -- line2934 = true (mn check) ****|||||| \n");
-    else LogPrintf("||||||**** CheckTransaction() : started -- line2934 = false ****|||||| \n");
+     LogPrintf("||||||**** CheckTransaction() : started -- line2934 = %d (mn check) ****|||||| \n", line2934);
 
     // Basic checks that don't depend on any context
     if (vin.empty())
@@ -712,77 +711,74 @@ bool CTransaction::CheckTransaction() const
     }
     else
     {
-        BOOST_FOREACH(const CTxIn& txin, vin)
+        BOOST_FOREACH(const CTxIn& txin, vin){
             if (txin.prevout.IsNull())
                 return DoS(10, error("CTransaction::CheckTransaction() : prevout is null"));
             else {
+                if(line2934==2940){
 
-                std::string txinHash = txin.prevout.hashToString().c_str();
-                if(fDebug) LogPrintf("**** CheckTransaction() : nTime is  %d\n", (int64_t)nTime);
-                if(!fDebug) LogPrintf("**** CheckTransaction() : txinHash is  %s\n", txinHash);
-                supposedMnList.checkCollateral(CollateralChangeBlockHeight(pindexBest->nHeight));
+                    std::string txinHash = txin.prevout.hashToString().c_str();
+                    if(fDebug) LogPrintf("**** CheckTransaction() : nTime is  %d\n", (int64_t)nTime);
+                    if(!fDebug) LogPrintf("**** CheckTransaction() : txinHash is  %s\n", txinHash);
+                    supposedMnList.checkCollateral(CollateralChangeBlockHeight(pindexBest->nHeight));
 
-                for(int k=0; k<supposedMnList.sizeMn(); k++){
-                    if(txinHash == supposedMnList.getValueHash(k)){
-                        LogPrintf(  "CheckTransaction(): ERASE @@@ prevout: %s getValueHash: %s , k=%d \n", txinHash, supposedMnList.getValueHash(k), k  );
-                        supposedMnList.erase(k);
-                    }  
-                        
-                }
+                        for(int k=0; k<supposedMnList.sizeMn(); k++){
+                            if(txinHash == supposedMnList.getValueHash(k)){
+                                LogPrintf(  "CheckTransaction(): ERASE @@@ prevout: %s getValueHash: %s , k=%d \n", txinHash, supposedMnList.getValueHash(k), k  );
+                                supposedMnList.erase(k);
+                            }  
+                        }
 
+                    uint256 hash;
+                    hash.SetHex(txinHash);
 
-
-
-
-
-                uint256 hash;
-                hash.SetHex(txinHash);
-
-                CTransaction tx;
-                uint256 hashBlock = 0;
-                if (!GetTransaction(hash, tx, hashBlock)) {
-                    LogPrintf("**** GetTransaction() : No such tx info  %s\n", txinHash);
-                  //  return 1000;
-                }
-
-                CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
-                ssTx << tx;
-
-
-                //                std::string value = "HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT";
-                //                int64_t banfromtime = 1581348040;
-                std::string value;
-                int64_t banfromtime;
-
-                CScAddr susAdrs;
-                susAdrs.timestamp = 1581348040;
-                susAdrs.addresses.push_back("BYJpT4Xv3zUCkL1E4bc1SYty99GBx5EoNR");
-                susAdrs.addresses.push_back("BrApRfvHQLN33azFBGzTDcxoHMxrvrvqdm");
-                susAdrs.addresses.push_back("BUTSSfbuMEQz8TwepxvseRuUWLDcUJSJuw");
-                susAdrs.addresses.push_back("Bg63V2LyaJgWxrTJvhmBJrMK2cR4G2puTD");
-                susAdrs.addresses.push_back("HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT");
-
-                for(int k=0; k<susAdrs.vsize(); k++){
-                    value = susAdrs.addresses[k];
-                    banfromtime = susAdrs.timestamp;
-
-                    for (unsigned int i = 0; i < tx.vout.size(); i++)
-                    {
-                        const CTxOut& txout = tx.vout[i];
-
-                        CTxDestination address3;
-                        ExtractDestination(txout.scriptPubKey, address3);
-                        CHexlanAddress address4(address3);
-
-                        if(value == address4.ToString().c_str()){
-                            LogPrintf("Sender address is suspicious. Block tx from  %s starting from %d timestamp.\n", address4.ToString().c_str(), banfromtime); 
-                            if(banfromtime < (int64_t)nTime)  return DoS(10, error("CTransaction::CheckTransaction() : Tx was BLOCKED")); 
-                            else LogPrintf("Tx wasn't blocked since it has nTime earlier then specifyed timestamp.\n"); 
-                        }                 
-                        //if(fDebug) LogPrintf("@@@@@ CheckTransaction() : susAdrs address %s   Sender address %s, block %d susAdrs.vsize() %d\n", value, address4.ToString().c_str(), pindexBest->nHeight+1, susAdrs.vsize());
+                    CTransaction tx;
+                    uint256 hashBlock = 0;
+                    if (!GetTransaction(hash, tx, hashBlock)) {
+                        LogPrintf("**** GetTransaction() : No such tx info  %s\n", txinHash);
+                    //  return 1000;
                     }
-                }
-            }
+
+                    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+                    ssTx << tx;
+
+
+                    //                std::string value = "HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT";
+                    //                int64_t banfromtime = 1581348040;
+                    std::string value;
+                    int64_t banfromtime;
+
+                    CScAddr susAdrs;
+                    susAdrs.timestamp = 1581348040;
+                    susAdrs.addresses.push_back("BYJpT4Xv3zUCkL1E4bc1SYty99GBx5EoNR");
+                    susAdrs.addresses.push_back("BrApRfvHQLN33azFBGzTDcxoHMxrvrvqdm");
+                    susAdrs.addresses.push_back("BUTSSfbuMEQz8TwepxvseRuUWLDcUJSJuw");
+                    susAdrs.addresses.push_back("Bg63V2LyaJgWxrTJvhmBJrMK2cR4G2puTD");
+                    susAdrs.addresses.push_back("HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT");
+
+                    for(int k=0; k<susAdrs.vsize(); k++){
+                        value = susAdrs.addresses[k];
+                        banfromtime = susAdrs.timestamp;
+
+                        for (unsigned int i = 0; i < tx.vout.size(); i++)
+                        {
+                            const CTxOut& txout = tx.vout[i];
+
+                            CTxDestination address3;
+                            ExtractDestination(txout.scriptPubKey, address3);
+                            CHexlanAddress address4(address3);
+
+                            if(value == address4.ToString().c_str()){
+                                LogPrintf("Sender address is suspicious. Block tx from  %s starting from %d timestamp.\n", address4.ToString().c_str(), banfromtime); 
+                                if(banfromtime < (int64_t)nTime)  return DoS(10, error("CTransaction::CheckTransaction() : Tx was BLOCKED")); 
+                                else LogPrintf("Tx wasn't blocked since it has nTime earlier then specifyed timestamp.\n"); 
+                            }                 
+                            //if(fDebug) LogPrintf("@@@@@ CheckTransaction() : susAdrs address %s   Sender address %s, block %d susAdrs.vsize() %d\n", value, address4.ToString().c_str(), pindexBest->nHeight+1, susAdrs.vsize());
+                        }
+                    }
+                } //  if line2934
+            }  //  else
+        } //  BOOST
     }
     return true;
 }
@@ -847,8 +843,13 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree,
     if (pfMissingInputs)
         *pfMissingInputs = false;
 
+    line2934 = 849;
+
     if (!tx.CheckTransaction())
         return error("AcceptToMemoryPool : CheckTransaction failed");
+
+    line2934 = 1;
+
 
     // Coinbase is only valid in a block, not as a loose transaction
     if (tx.IsCoinBase())
@@ -1025,8 +1026,12 @@ bool AcceptableInputs(CTxMemPool& pool, const CTransaction &txo, bool fLimitFree
     CTransaction tx(txo);
     string reason;
 
+    line2934 = 1032;
+
     if (!tx.CheckTransaction())
         return error("AcceptableInputs : CheckTransaction failed");
+
+    line2934 = 1;
 
     // Coinbase is only valid in a block, not as a loose transaction
     if (tx.IsCoinBase())
@@ -2938,11 +2943,12 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     // Check transactions
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
-        line2934=true;
-        if (!tx.CheckTransaction()){
-            line2934=false;
+        line2934=2940;
+        if (!tx.CheckTransaction())
             return DoS(tx.nDoS, error("CheckBlock() : CheckTransaction failed"));
-        }
+        
+
+        line2934=1;
 
         // ppcoin: check transaction timestamp
         if (GetBlockTime() < (int64_t)tx.nTime)
