@@ -1526,11 +1526,11 @@ int64_t GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, i
     if (nBestHeight+1 > 10 && nBestHeight+1 <= 46050)  {
         nSubsidy = 32 * COIN;
     }
-    else if (nBestHeight+1 > 46050 && nBestHeight+1 <= 390000)  {
+    else if (nBestHeight+1 > 46050 && nBestHeight+1 < 94185)  {
         nSubsidy = 128 * COIN;
     }
-    else if (nBestHeight+1 > 390000 && nBestHeight+1 <= 585000) {
-        nSubsidy = 8 * COIN;
+    else if (nBestHeight >= 94185 && nBestHeight+1 <= 585000) {
+        nSubsidy = 5 * COIN;
     }
     else if (nBestHeight+1 > 585000 && nBestHeight+1 <= 780000) {
         nSubsidy = 4 * COIN;
@@ -1584,6 +1584,9 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     const CBlockIndex* pindexPrevPrev = GetLastBlockIndex(pindexPrev->pprev, fProofOfStake);
     if (pindexPrevPrev->pprev == NULL)
         return bnTargetLimit.GetCompact(); // second block
+
+    if(nBestHeight == (CollateralChangeBlockHeight(nBestHeight)-1)) 
+        return bnTargetLimit.GetCompact(); // last block before collateral change
 
     int64_t nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
 
