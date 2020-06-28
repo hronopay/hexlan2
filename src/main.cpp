@@ -1585,6 +1585,8 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     if (pindexPrevPrev->pprev == NULL)
         return bnTargetLimit.GetCompact(); // second block
 
+    LogPrintf(  "GetNextTargetRequired(): nBestHeight=%d \n", nBestHeight );
+
     if(nBestHeight == (CollateralChangeBlockHeight(nBestHeight+1)-1)) 
         return bnTargetLimit.GetCompact(); // last block before collateral change
 
