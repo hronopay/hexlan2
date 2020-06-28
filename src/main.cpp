@@ -1526,10 +1526,10 @@ int64_t GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, i
     if (nBestHeight+1 > 10 && nBestHeight+1 <= 46050)  {
         nSubsidy = 32 * COIN;
     }
-    else if (nBestHeight+1 > 46050 && nBestHeight+1 < 94190)  {
+    else if (nBestHeight+1 > 46050 && nBestHeight+1 < 94199)  {
         nSubsidy = 128 * COIN;
     }
-    else if (nBestHeight >= 94190 && nBestHeight+1 <= 585000) {
+    else if (nBestHeight >= 94199 && nBestHeight+1 <= 585000) {
         nSubsidy = 5 * COIN;
     }
     else if (nBestHeight+1 > 585000 && nBestHeight+1 <= 780000) {
@@ -1577,7 +1577,6 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     if (pindexLast == NULL)
         return bnTargetLimit.GetCompact(); // genesis block
 
-
     const CBlockIndex* pindexPrev = GetLastBlockIndex(pindexLast, fProofOfStake);
     if (pindexPrev->pprev == NULL)
         return bnTargetLimit.GetCompact(); // first block
@@ -1585,10 +1584,16 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     if (pindexPrevPrev->pprev == NULL)
         return bnTargetLimit.GetCompact(); // second block
 
-    LogPrintf(  "GetNextTargetRequired(): nBestHeight=%d \n", nBestHeight );
-
-    if(nBestHeight == (CollateralChangeBlockHeight(nBestHeight+1)-1)) 
+    
+    if(nBestHeight == (CollateralChangeBlockHeight(nBestHeight+1)-1)) {
+        LogPrintf(  "GetNextTargetRequired(): nBestHeight=%d bnTargetLimit.GetCompact() = %d bnTargetLimit.ToString(16) = %s\n", nBestHeight, bnTargetLimit.GetCompact() , bnTargetLimit.ToString(16) );
         return bnTargetLimit.GetCompact(); // last block before collateral change
+    }
+
+    if(nBestHeight == (CollateralChangeBlockHeight(nBestHeight+2)-2)) {
+        LogPrintf(  "GetNextTargetRequired(): nBestHeight=%d bnTargetLimit.GetCompact() = %d bnTargetLimit.ToString(16) = %s\n", nBestHeight, bnTargetLimit.GetCompact() , bnTargetLimit.ToString(16) );
+        return bnTargetLimit.GetCompact(); // last block before collateral change
+    }
 
     int64_t nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
 
@@ -1606,6 +1611,8 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 
     if (bnNew <= 0 || bnNew > bnTargetLimit)
         bnNew = bnTargetLimit;
+
+    LogPrintf(  "GetNextTargetRequired(): nBestHeight=%d bnTargetLimit.GetCompact() = %d bnTargetLimit.ToString(16) = %s\n", nBestHeight, bnNew.GetCompact() , bnTargetLimit.ToString(16) );
 
     return bnNew.GetCompact();
 }
