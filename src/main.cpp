@@ -666,7 +666,7 @@ class CScAddr
 
 bool CTransaction::CheckTransaction() const
 {
-    if(line2934>1) LogPrintf("||||||**** CheckTransaction() : started -- line2934 = %d (mn check) ****|||||| \n", line2934);
+    if(line2934!=2940) LogPrintf("||||||**** CheckTransaction() : started -- line2934 = %d ****|||||| \n", line2934);
 
     // Basic checks that don't depend on any context
     if (vin.empty())
@@ -2954,10 +2954,10 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     // Check transactions
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
-        //line2934=2940;
+        line2934=2940;
         if (!tx.CheckTransaction())
             return DoS(tx.nDoS, error("CheckBlock() : CheckTransaction failed"));
-        //line2934=1;
+        line2934=1;
 
         // ppcoin: check transaction timestamp
         if (GetBlockTime() < (int64_t)tx.nTime)
