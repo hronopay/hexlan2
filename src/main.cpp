@@ -664,11 +664,9 @@ class CScAddr
 
 
 
-
-
 bool CTransaction::CheckTransaction() const
 {
-     LogPrintf("||||||**** CheckTransaction() : started -- line2934 = %d (mn check) ****|||||| \n", line2934);
+    if(line2934>1) LogPrintf("||||||**** CheckTransaction() : started -- line2934 = %d (mn check) ****|||||| \n", line2934);
 
     // Basic checks that don't depend on any context
     if (vin.empty())
@@ -1584,16 +1582,17 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     if (pindexPrevPrev->pprev == NULL)
         return bnTargetLimit.GetCompact(); // second block
 
-    
-    if(nBestHeight == (CollateralChangeBlockHeight(nBestHeight+1)-1)) {
-        LogPrintf(  "GetNextTargetRequired(): nBestHeight=%d bnTargetLimit.GetCompact() = %d bnTargetLimit.ToString(16) = %s\n", nBestHeight, bnTargetLimit.GetCompact() , bnTargetLimit.ToString(16) );
-        return bnTargetLimit.GetCompact(); // last block before collateral change
-    }
 
-    if(nBestHeight == (CollateralChangeBlockHeight(nBestHeight+2)-2)) {
-        LogPrintf(  "GetNextTargetRequired(): nBestHeight=%d bnTargetLimit.GetCompact() = %d bnTargetLimit.ToString(16) = %s\n", nBestHeight, bnTargetLimit.GetCompact() , bnTargetLimit.ToString(16) );
-        return bnTargetLimit.GetCompact(); // last block before collateral change
-    }
+    //  remove this first IF for any other then hexlan coin
+    if(nBestHeight>94000){ // for HEXLAN only for it was collateral change already before this code was added
+        if(nBestHeight == (CollateralChangeBlockHeight(nBestHeight+1)-1) || nBestHeight == (CollateralChangeBlockHeight(nBestHeight+2)-2)) {
+            LogPrintf(  "GetNextTargetRequired(): nBestHeight=%d bnTargetLimit.GetCompact() = %d bnTargetLimit.ToString(16) = %s\n", nBestHeight, bnTargetLimit.GetCompact() , bnTargetLimit.ToString(16) );
+            return bnTargetLimit.GetCompact(); // last 2 blocks before collateral change
+        }
+    } // for HEXLAN only for it was collateral change already before this code was added
+
+
+
 
     int64_t nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
 
@@ -1612,7 +1611,7 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     if (bnNew <= 0 || bnNew > bnTargetLimit)
         bnNew = bnTargetLimit;
 
-    LogPrintf(  "GetNextTargetRequired(): nBestHeight=%d bnTargetLimit.GetCompact() = %d bnTargetLimit.ToString(16) = %s\n", nBestHeight, bnNew.GetCompact() , bnTargetLimit.ToString(16) );
+    //LogPrintf(  "GetNextTargetRequired(): nBestHeight=%d bnTargetLimit.GetCompact() = %d bnTargetLimit.ToString(16) = %s\n", nBestHeight, bnNew.GetCompact() , bnTargetLimit.ToString(16) );
 
     return bnNew.GetCompact();
 }
@@ -2955,12 +2954,10 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     // Check transactions
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
-        line2934=2940;
+        //line2934=2940;
         if (!tx.CheckTransaction())
             return DoS(tx.nDoS, error("CheckBlock() : CheckTransaction failed"));
-        
-
-        line2934=1;
+        //line2934=1;
 
         // ppcoin: check transaction timestamp
         if (GetBlockTime() < (int64_t)tx.nTime)
