@@ -85,8 +85,8 @@ public:
     }
 
     void checkCollateral(int currentColl){
-        if(!lastcollateral) lastcollateral = currentColl;
-        if(currentColl != lastcollateral) {
+        if(!lastcollateral) lastcollateral = currentColl;  // if this is first collateral we only initialyze lastcollateral value 
+        else if(currentColl != lastcollateral) {
             lastcollateral = currentColl;
             this->reInitialyze();
         }
