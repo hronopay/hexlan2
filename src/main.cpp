@@ -2712,7 +2712,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
 
                 for(int k=0; k<supposedMnList.sizeMn(); k++){
                     if(txin.prevout.hash.ToString().c_str() == supposedMnList.getValueHash(k)){
-                        LogPrintf(  "CheckMnTx(): i=%d k=%d heightcount: %d @@@ prevout: %s getValueHash: %s \n", i, k, heightcount, txin.prevout.hash.ToString().c_str(), supposedMnList.getValueHash(k)  );
+                        LogPrintf(  "CheckMnTx(): i=%d k=%d heightcount: %d @@@ prevout: %s getValueHash: %s tx.GetHash=\n", i, k, heightcount, txin.prevout.hash.ToString().c_str(), supposedMnList.getValueHash(k), tx.GetHash().GetHex().c_str()  );
                         supposedMnList.erase(k);
                     }  
                         
@@ -2952,12 +2952,12 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     }
 
 
-
     // Check transactions
-    LogPrintf("CheckBlock() : Start check transactions on height %d\n", pindexBest->nHeight+1);
+    LogPrintf("-----\nCheckBlock() : Start check transactions on height %d\n", pindexBest->nHeight+1);
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
         line2934=2940;
+        LogPrintf("CheckBlock() : Start check transactions %s on height %d\n",tx.GetHash().GetHex().c_str(), pindexBest->nHeight+1);
         if (!tx.CheckTransaction())
             return DoS(tx.nDoS, error("CheckBlock() : CheckTransaction failed"));
         line2934=1;
@@ -2966,7 +2966,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
         if (GetBlockTime() < (int64_t)tx.nTime)
             return DoS(50, error("CheckBlock() : block timestamp earlier than transaction timestamp"));
     }
-    LogPrintf("CheckBlock() : Stop check transactions on height %d\n", pindexBest->nHeight+1);
+    LogPrintf("CheckBlock() : Stop check transactions on height %d\n\n", pindexBest->nHeight+1);
 
     /*
 
