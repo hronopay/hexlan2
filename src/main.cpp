@@ -2771,7 +2771,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
         return DoS(100, error("CheckBlock() : bad proof-of-stake block signature"));
 
 
-// ----------- instantX transaction scanning -----------
+    // ----------- instantX transaction scanning -----------
 
     if(IsSporkActive(SPORK_3_INSTANTX_BLOCK_FILTERING)){
         BOOST_FOREACH(const CTransaction& tx, vtx){
@@ -2954,6 +2954,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
 
     // Check transactions
+    LogPrintf("CheckBlock() : Start check transactions on height %d\n", pindexBest->nHeight+1);
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
         line2934=2940;
@@ -2964,37 +2965,37 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
         // ppcoin: check transaction timestamp
         if (GetBlockTime() < (int64_t)tx.nTime)
             return DoS(50, error("CheckBlock() : block timestamp earlier than transaction timestamp"));
+    }
+    LogPrintf("CheckBlock() : Stop check transactions on height %d\n", pindexBest->nHeight+1);
+
+    /*
+
+    for (unsigned int j = 0; j < vtx.size(); j++){
+
+        
+        //LogPrintf("*** *** *** AAAAAAAAAA : getTxInputs is  %s\n", getTxInputs(vtx[j].txid) );
+
+        for (unsigned int i = 0; i < vtx[j].vin.size(); i++)
+            {
+                //std::string valueAddr = getTxVoutAddr(vin[i].prevPubKey);
+
+
+                CTxDestination address3;
+                ExtractDestination(vtx[j].vin[i].prevPubKey, address3);
+                CHexlanAddress address4(address3);
+
+                //LogPrintf("*** *** *** FFFFFFFFF : prevPubKey is  %s\n", address4.ToString().c_str() );
+    
+    //            return DoS(100, error("CTransaction::CheckTransaction() : txout total out of range"));
+            } 
+
 
     }
 
-/*
-
-for (unsigned int j = 0; j < vtx.size(); j++){
-
-    
-    //LogPrintf("*** *** *** AAAAAAAAAA : getTxInputs is  %s\n", getTxInputs(vtx[j].txid) );
-
-    for (unsigned int i = 0; i < vtx[j].vin.size(); i++)
-        {
-            //std::string valueAddr = getTxVoutAddr(vin[i].prevPubKey);
-
-
-            CTxDestination address3;
-            ExtractDestination(vtx[j].vin[i].prevPubKey, address3);
-            CHexlanAddress address4(address3);
-
-            //LogPrintf("*** *** *** FFFFFFFFF : prevPubKey is  %s\n", address4.ToString().c_str() );
- 
-//            return DoS(100, error("CTransaction::CheckTransaction() : txout total out of range"));
-        } 
-
-
-}
-
-*/
-//****************************************
-       
-//******************************************
+    */
+    //****************************************
+        
+    //******************************************
 
 
 
