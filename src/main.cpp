@@ -2609,12 +2609,12 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const u
 
 
 
-//-----------------------------------------------------------------------------------------------
-// ***** метод формирует вектор supposedMnList в котором содержатся все адреса текущих мастернод
-// ***** вектор состоит из адресов на которые был сделан перевод текущего коллатерала
-// ***** вторая часть метода проверяет, не был ли потрачен коллатерал к настоящему времени
-// ***** была ли запущена матернода на данном адресе - не проверяется
-//-----------------------------------------------------------------------------------------------
+// ------------------------------------------------ -----------------------------------------------
+// ***** method forms the supposedMnList vector which contains all the addresses of the current masternodes
+// ***** the vector consists of the addresses to which the current collateral was transfered
+// ***** the second part of the method checks whether the collateral has been spent by now
+// ***** it is not checked whether the mn was launched at this address or not
+// ------------------------------------------------ -----------------------------------------------
 bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
 {
     int desiredheight;
@@ -2627,9 +2627,8 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
     desiredheight = (CollateralChangeBlockHeight(Height)-500) > 1 ? (CollateralChangeBlockHeight(Height)-500) : 2 ; 
     
     // next checks
-    //  глобальная переменная  lastMnCheckDepth изначально = 1, в конце данного метода устанавливается в текущий номер блока
-    //  соответственно desiredheight переписывается когда метод вызывается повторно, чтобы не проверять блоки которые были уже 
-    //  проверены
+    // global variable lastMnCheckDepth initially = 1, at the end of this method is set to the current block number
+    // correspondingly desiredheight is rewritten when the method is called repeatedly so as not to check blocks that have already // been checked
 
 
     {
@@ -2690,43 +2689,43 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
         LogPrintf("CheckMnTx() : kk= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", kk, supposedMnList.getValueMn(kk), supposedMnList.getValueHash(kk));
     }
 
-    //  supposedMnList.reInitialyze();
-    {
-    CBlock block;
-    CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
+    //  just make another {} distinct bllock of brackets to kill the variables
+    {   
+        CBlock block;
+        CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
 
 
-    // look for tx through the chain again from top to bottom
-    pblockindex = mapBlockIndex[hashBestChain];
-    heightcount = Height;
+        // look for tx through the chain again from top to bottom
+        pblockindex = mapBlockIndex[hashBestChain];
+        heightcount = Height;
 
-    while (pblockindex->nHeight > desiredheight){
-        pblockindex = pblockindex->pprev;
-        heightcount--;
-    
-        //std::string blockHash = pblockindex->phashBlock->GetHex();
+        while (pblockindex->nHeight > desiredheight){
+            pblockindex = pblockindex->pprev;
+            heightcount--;
+        
+            //std::string blockHash = pblockindex->phashBlock->GetHex();
 
-        CBlockIndex* pindex = pblockindex;
-        block.ReadFromDisk(pindex);
-        block.BuildMerkleTree();
-        //LogPrintf("ReadFromDisk     %s\n", block.ToString());
+            CBlockIndex* pindex = pblockindex;
+            block.ReadFromDisk(pindex);
+            block.BuildMerkleTree();
+            //LogPrintf("ReadFromDisk     %s\n", block.ToString());
 
-    
+        
 
-        BOOST_FOREACH (const CTransaction& tx, block.vtx)
-        {
-            for (unsigned int i = 0; i < tx.vin.size(); i++){
-                const CTxIn& txin = tx.vin[i];
-                for(int k=0; k<supposedMnList.sizeMn(); k++){
-                    if(txin.prevout.hash.ToString().c_str() == supposedMnList.getValueHash(k)){
-                        LogPrintf(  "Found in block Height=%d desiredheight=%d\n -- supposedMnList.getValueHash(k)=%s \n",pblockindex->nHeight, desiredheight, supposedMnList.getValueHash(k));
-                        supposedMnList.erase(k);
-                    }  
+            BOOST_FOREACH (const CTransaction& tx, block.vtx)
+            {
+                for (unsigned int i = 0; i < tx.vin.size(); i++){
+                    const CTxIn& txin = tx.vin[i];
+                    for(int k=0; k<supposedMnList.sizeMn(); k++){
+                        if(txin.prevout.hash.ToString().c_str() == supposedMnList.getValueHash(k)){
+                            LogPrintf(  "Found in block Height=%d desiredheight=%d\n -- supposedMnList.getValueHash(k)=%s \n",pblockindex->nHeight, desiredheight, supposedMnList.getValueHash(k));
+                            supposedMnList.erase(k);
+                        }  
+                    }
+                    //if (heightcount % 100 == 1) LogPrintf(  "CheckMnTx(): heightcount: %d @@@ prevout: %s \n", heightcount, txin.prevout.hash.ToString().c_str()  );
                 }
-                //if (heightcount % 100 == 1) LogPrintf(  "CheckMnTx(): heightcount: %d @@@ prevout: %s \n", heightcount, txin.prevout.hash.ToString().c_str()  );
             }
         }
-    }
 
     }
 
