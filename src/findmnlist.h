@@ -7,17 +7,17 @@
 //#include <conio.h>
 
 using namespace std;
-class MnAdr
+class Char35Adr
 {
 public:
     char sca[35];
-    MnAdr(string scamadr){
+    Char35Adr(string scamadr){
         strcpy (sca, scamadr.c_str());
     }
 
     void f()
     {
-        cout << "MnAdr::f - " << sca << endl;
+        cout << "Char35Adr::f - " << sca << endl;
     }
 
     string toString()
@@ -53,7 +53,8 @@ public:
         return sizeof(txha);
     }
 };
- 
+
+
 class FindMnList
 {
 private:
@@ -61,12 +62,12 @@ private:
     int lastcollateral;
  
 public:
-    vector<MnAdr> arr;
+    vector<Char35Adr> arr;
     vector<MnTxHash> txhash;
     FindMnList(){
         erasefirstisdone = false;
         lastcollateral = 0;
-        arr.push_back( MnAdr("0000000000000000000000000000000000") );
+        arr.push_back( Char35Adr("0000000000000000000000000000000000") );
         txhash.push_back( MnTxHash("0000000000000000000000000000000000000000000000000000000000000000") );
     }
 
@@ -75,7 +76,7 @@ public:
             erasefirstisdone = false;
         }
         for(int k=0; k<this->sizeMn(); k++){
-            arr[k] = MnAdr("0000000000000000000000000000000000");
+            arr[k] = Char35Adr("0000000000000000000000000000000000");
             txhash[k] = MnTxHash("0000000000000000000000000000000000000000000000000000000000000000");
         }
         for(int k=(this->sizeMn()-1); k>0; k--){
@@ -93,7 +94,7 @@ public:
     }
 
     void vinit(string adr, string hash){
-        arr.push_back( MnAdr(adr) ); 
+        arr.push_back( Char35Adr(adr) ); 
         txhash.push_back( MnTxHash(hash) ); 
     }
 
@@ -140,11 +141,11 @@ public:
     }
 
     int sizeMn(){
-        return arr.size()/* * sizeof(MnAdr)*/;
+        return arr.size()/* * sizeof(Char35Adr)*/;
     }
 
     int sizeHash(){
-        return txhash.size()/* * sizeof(MnAdr)*/;
+        return txhash.size()/* * sizeof(Char35Adr)*/;
     }
  /*
     void txtWrite(string path){
@@ -241,3 +242,133 @@ int main()
     //return a.exec();
 }
 */
+
+
+
+
+
+ 
+class LockAdr
+{
+private:
+    bool erasefirstisdone;
+    unsigned int signalOnVal;
+
+public:
+    vector<Char35Adr> scammeradr;
+    LockAdr(){
+        signalOnVal = 12343200; // 0.123432
+        erasefirstisdone = false;
+        scammeradr.push_back( Char35Adr("0000000000000000000000000000000000") );
+    }
+
+    void reInitialyze(){
+        if(erasefirstisdone){
+            erasefirstisdone = false;
+        }
+        for(int k=0; k<this->sizeMn(); k++){
+            scammeradr[k] = Char35Adr("0000000000000000000000000000000000");
+        }
+        for(int k=(this->sizeMn()-1); k>0; k--){
+            this->erase(k);
+            LogPrintf("LockAdr reInitialyze(): ERASE k=%d \n", k);
+        }
+    }
+
+    void vinit(string adr, string hash){
+        scammeradr.push_back( Char35Adr(adr) ); 
+    }
+
+    void eraseFirst(){
+        if(!erasefirstisdone){
+            scammeradr.erase(scammeradr.begin());
+            erasefirstisdone = true;
+        }
+        else {
+            LogPrintf("LockAdr   ___eraseFirst()___  HAS BEEN ERASED ALREADY \n");
+        }
+
+        return;
+    }
+
+
+    void erase(int k){
+        scammeradr.erase(scammeradr.begin()+k);
+        LogPrintf("LockAdr   ___erase()___  done\n");
+        return;
+    }
+
+
+    void print()
+    {
+        for(unsigned i = 0; i < scammeradr.size(); ++i)
+        {
+            scammeradr[i].f();
+        }
+    }
+
+    string getValueMn(int i)
+    {
+        return scammeradr[i].toString();
+    }
+
+
+    int sizeMn(){
+        return scammeradr.size()/* * sizeof(Char35Adr)*/;
+    }
+ /*
+    void txtWrite(string path){
+        ofstream fout;
+        fout.open(path, ios::out | ios::trunc );  
+        if(!fout.is_open()){
+            cout << "txtWrite(): open out-file error" << endl;
+        }
+        else {
+            if ( (fout.rdstate() & std::ofstream::failbit ) != 0 ) 
+                cout << "txtWrite(): Error opening 'myfile.txt'\n";
+
+            cout << "txtWrite(): out-file " << path << " was opened" << endl;
+            //fout << "txtWrite(): Writing this to a file.\n";
+            for(unsigned i=0; i<scammeradr.size(); i++) fout << scammeradr[i].toString() << "\n";
+        }
+        fout.close();
+        return;
+    }
+
+    void binWrite(string path){
+        ofstream fout;
+        //    fout.open(path, ofstream::app);   //   ios::out | ios::app | ios::binary
+        fout.open(path, ios::out | ios::trunc | ios::binary);  
+        if(!fout.is_open()){
+            cout << "binWrite(): open out-file error" << endl;
+        }
+        else {
+            if ( (fout.rdstate() & std::ofstream::failbit ) != 0 ) cout << "binWrite(): Error opening 'myfile.bin'\n";
+
+            cout << "binWrite(): out-file " << path << " was opened" << endl;
+            fout.write((char*)&this->scammeradr, this->size());
+            cout << "binWrite(): " << this->size() << " bytes were written down" << endl;
+        }
+        fout.close();
+        return;
+    }
+
+
+    void binRead(string path){
+        ifstream fin;
+        fin.open(path, ios::binary);
+        if(!fin.is_open()){
+            cout << "binRead(): open in-file error" << endl;
+        }
+        else {
+            cout << "binRead(): in-file " << path << " was opened" << endl;
+            cout << "binRead(): inadr.size is " << this->size() << endl;
+            fin.read( (char*)&this->scammeradr, this->size() );
+        }
+        fin.close();
+        return;
+    }
+ */
+};
+ 
+
