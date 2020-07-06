@@ -2630,49 +2630,55 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
     //  глобальная переменная  lastMnCheckDepth изначально = 1, в конце данного метода устанавливается в текущий номер блока
     //  соответственно desiredheight переписывается когда метод вызывается повторно, чтобы не проверять блоки которые были уже 
     //  проверены
-    if(lastMnCheckDepth > 1) desiredheight = lastMnCheckDepth; 
-    
-    LogPrintf("@@-----@@   ___CheckMnTx()___  ; desiredheight= %d  Collateral = %d \n", desiredheight, curCollateralValue); 
-    if (desiredheight < 0 || desiredheight > nBestHeight)
-        return false;
 
-    CBlock block;
-    CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
-    
-    while (pblockindex->nHeight > desiredheight){
-        pblockindex = pblockindex->pprev;
-        heightcount--;
-    
-        //std::string blockHash = pblockindex->phashBlock->GetHex();
 
-        CBlockIndex* pindex = pblockindex;
-        block.ReadFromDisk(pindex);
-        block.BuildMerkleTree();
-        //LogPrintf("ReadFromDisk     %s\n", block.ToString());
-    
+    {
 
-        BOOST_FOREACH (const CTransaction& tx, block.vtx)
-        {
-            //LogPrintf("@@---@----@@   ___CheckMnTx()___ : tx= %s  ; heightcount= %d   \n", tx.GetHash().GetHex().c_str(), heightcount); 
+        if(lastMnCheckDepth > 1) desiredheight = lastMnCheckDepth; 
+        
+        LogPrintf("@@-----@@   ___CheckMnTx()___  ; desiredheight= %d  Collateral = %d \n", desiredheight, curCollateralValue); 
+        if (desiredheight < 0 || desiredheight > nBestHeight)
+            return false;
 
-            for (unsigned int i = 0; i < tx.vout.size(); i++){
-                const CTxOut& txout = tx.vout[i];
+        CBlock block;
+        CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
+        
+        while (pblockindex->nHeight > desiredheight){
+            pblockindex = pblockindex->pprev;
+            heightcount--;
+        
+            //std::string blockHash = pblockindex->phashBlock->GetHex();
 
-                CTxDestination address3;
-                ExtractDestination(txout.scriptPubKey, address3);
-                CHexlanAddress address4(address3);
+            CBlockIndex* pindex = pblockindex;
+            block.ReadFromDisk(pindex);
+            block.BuildMerkleTree();
+            //LogPrintf("ReadFromDisk     %s\n", block.ToString());
+        
 
-                double val = (double)(txout.nValue) / 100000000;
-                //LogPrintf("CheckMnTx(): (int)txout.nValue: %d ^^^ curCollateralValue: %d \n", val, curCollateralValue);
+            BOOST_FOREACH (const CTransaction& tx, block.vtx)
+            {
+                //LogPrintf("@@---@----@@   ___CheckMnTx()___ : tx= %s  ; heightcount= %d   \n", tx.GetHash().GetHex().c_str(), heightcount); 
 
-//                if( 100000000*curCollateralValue == txout.nValue ){
-                if( (double)curCollateralValue == val){
-                    LogPrintf("CheckMnTx(): probably %s is Collateral tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
-                    supposedMnList.vinit(address4.ToString().c_str(),tx.GetHash().GetHex().c_str());
-                    //return true;
-                } 
+                for (unsigned int i = 0; i < tx.vout.size(); i++){
+                    const CTxOut& txout = tx.vout[i];
+
+                    CTxDestination address3;
+                    ExtractDestination(txout.scriptPubKey, address3);
+                    CHexlanAddress address4(address3);
+
+                    double val = (double)(txout.nValue) / 100000000;
+                    //LogPrintf("CheckMnTx(): (int)txout.nValue: %d ^^^ curCollateralValue: %d \n", val, curCollateralValue);
+
+    //                if( 100000000*curCollateralValue == txout.nValue ){
+                    if( (double)curCollateralValue == val){
+                        LogPrintf("CheckMnTx(): probably %s is Collateral tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
+                        supposedMnList.vinit(address4.ToString().c_str(),tx.GetHash().GetHex().c_str());
+                        //return true;
+                    } 
+                }
             }
         }
+
     }
         //*****************************************************
         // try to find out if the collateral has been spent already
@@ -2685,6 +2691,9 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
     }
 
     //  supposedMnList.reInitialyze();
+    {
+    CBlock block;
+    CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
 
 
     // look for tx through the chain again from top to bottom
@@ -2701,25 +2710,24 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
         block.ReadFromDisk(pindex);
         block.BuildMerkleTree();
         //LogPrintf("ReadFromDisk     %s\n", block.ToString());
+
     
 
         BOOST_FOREACH (const CTransaction& tx, block.vtx)
         {
-            //LogPrintf("@@---@----@@   ___CheckMnTx()___ : tx= %s  ; heightcount= %d   \n", tx.GetHash().GetHex().c_str(), heightcount); 
-
             for (unsigned int i = 0; i < tx.vin.size(); i++){
                 const CTxIn& txin = tx.vin[i];
-
                 for(int k=0; k<supposedMnList.sizeMn(); k++){
                     if(txin.prevout.hash.ToString().c_str() == supposedMnList.getValueHash(k)){
-                        LogPrintf(  "CheckMnTx(): i=%d k=%d heightcount: %d @@@ prevout: %s getValueHash: %s tx.GetHash=\n", i, k, heightcount, txin.prevout.hash.ToString().c_str(), supposedMnList.getValueHash(k), tx.GetHash().GetHex().c_str()  );
+                        LogPrintf(  "Found in block Height=%d desiredheight=%d\n -- supposedMnList.getValueHash(k)=%s \n",pblockindex->nHeight, desiredheight, supposedMnList.getValueHash(k));
                         supposedMnList.erase(k);
                     }  
-                        
                 }
                 //if (heightcount % 100 == 1) LogPrintf(  "CheckMnTx(): heightcount: %d @@@ prevout: %s \n", heightcount, txin.prevout.hash.ToString().c_str()  );
             }
         }
+    }
+
     }
 
 

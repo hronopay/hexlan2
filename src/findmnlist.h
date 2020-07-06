@@ -114,6 +114,7 @@ public:
     void erase(int k){
         arr.erase(arr.begin()+k);
         txhash.erase(txhash.begin()+k);
+        LogPrintf("   ___erase()___  done\n");
         return;
     }
 
