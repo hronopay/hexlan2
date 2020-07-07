@@ -57,7 +57,9 @@ int nBestHeight = -1;
 
 int lastMnCheckDepth=1;
 FindMnList supposedMnList;
-LockAdr lockersAdr;
+CLockAdr lockersAdr;
+//CBlList scsAdr;
+CBlList susAdrs;
 
 
 uint256 nBestChainTrust = 0;
@@ -743,28 +745,17 @@ bool CTransaction::CheckTransaction() const
                     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
                     ssTx << tx;
 
-
-                    //                std::string value = "HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT";
-                    //                int64_t banfromtime = 1581348040;
                     std::string value;
                     int64_t banfromtime;
+                    //susAdrs.printList(); 
 
-                    CScAddr susAdrs;
-                    susAdrs.timestamp = 1581348040;
-                    susAdrs.addresses.push_back("BYJpT4Xv3zUCkL1E4bc1SYty99GBx5EoNR");
-                    susAdrs.addresses.push_back("BrApRfvHQLN33azFBGzTDcxoHMxrvrvqdm");
-                    susAdrs.addresses.push_back("BUTSSfbuMEQz8TwepxvseRuUWLDcUJSJuw");
-                    susAdrs.addresses.push_back("Bg63V2LyaJgWxrTJvhmBJrMK2cR4G2puTD");
-                    susAdrs.addresses.push_back("HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT");
-
-                    for(int k=0; k<susAdrs.vsize(); k++){
-                        value = susAdrs.addresses[k];
-                        banfromtime = susAdrs.timestamp;
+                    for(int k=0; k<susAdrs.sizeoflist(); k++){
+                        value = susAdrs.address(k);
+                        banfromtime = susAdrs.timeStamp(k);
 
                         for (unsigned int i = 0; i < tx.vout.size(); i++)
                         {
                             const CTxOut& txout = tx.vout[i];
-
                             CTxDestination address3;
                             ExtractDestination(txout.scriptPubKey, address3);
                             CHexlanAddress address4(address3);

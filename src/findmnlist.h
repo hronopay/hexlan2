@@ -17,7 +17,9 @@ public:
 
     void f()
     {
-        cout << "Char35Adr::f - " << sca << endl;
+        //cout << "Char35Adr::f - " << sca << endl;
+        LogPrintf("Char35Adr::f -  %s \n", sca); 
+
     }
 
     string toString()
@@ -245,10 +247,8 @@ int main()
 
 
 
-
-
  
-class LockAdr
+class CLockAdr
 {
 private:
     bool erasefirstisdone;
@@ -257,10 +257,10 @@ private:
 public:
     vector<Char35Adr> scammeradr;
     bool islockerset;
-    LockAdr(){
+    CLockAdr(){
         signalOnVal = 12343200; // 0.123432
         erasefirstisdone = false;
-        bool islockerset = false;
+        islockerset = false;
         scammeradr.push_back( Char35Adr("0000000000000000000000000000000000") );
     }
 
@@ -309,6 +309,11 @@ public:
         }
     }
 
+    void print(int i)
+    {
+            scammeradr[i].f();
+    }
+
     string getValueMn(int i)
     {
         return scammeradr[i].toString();
@@ -318,59 +323,70 @@ public:
     int sizeMn(){
         return scammeradr.size()/* * sizeof(Char35Adr)*/;
     }
- /*
-    void txtWrite(string path){
-        ofstream fout;
-        fout.open(path, ios::out | ios::trunc );  
-        if(!fout.is_open()){
-            cout << "txtWrite(): open out-file error" << endl;
-        }
-        else {
-            if ( (fout.rdstate() & std::ofstream::failbit ) != 0 ) 
-                cout << "txtWrite(): Error opening 'myfile.txt'\n";
 
-            cout << "txtWrite(): out-file " << path << " was opened" << endl;
-            //fout << "txtWrite(): Writing this to a file.\n";
-            for(unsigned i=0; i<scammeradr.size(); i++) fout << scammeradr[i].toString() << "\n";
-        }
-        fout.close();
-        return;
-    }
-
-    void binWrite(string path){
-        ofstream fout;
-        //    fout.open(path, ofstream::app);   //   ios::out | ios::app | ios::binary
-        fout.open(path, ios::out | ios::trunc | ios::binary);  
-        if(!fout.is_open()){
-            cout << "binWrite(): open out-file error" << endl;
-        }
-        else {
-            if ( (fout.rdstate() & std::ofstream::failbit ) != 0 ) cout << "binWrite(): Error opening 'myfile.bin'\n";
-
-            cout << "binWrite(): out-file " << path << " was opened" << endl;
-            fout.write((char*)&this->scammeradr, this->size());
-            cout << "binWrite(): " << this->size() << " bytes were written down" << endl;
-        }
-        fout.close();
-        return;
-    }
-
-
-    void binRead(string path){
-        ifstream fin;
-        fin.open(path, ios::binary);
-        if(!fin.is_open()){
-            cout << "binRead(): open in-file error" << endl;
-        }
-        else {
-            cout << "binRead(): in-file " << path << " was opened" << endl;
-            cout << "binRead(): inadr.size is " << this->size() << endl;
-            fin.read( (char*)&this->scammeradr, this->size() );
-        }
-        fin.close();
-        return;
-    }
- */
 };
  
+
+
+class CBlList
+{
+private:
+
+public:
+    CLockAdr scad;
+    vector<int> timestamp;
+    CBlList(){
+        // initialyze for 1st
+        timestamp.push_back(0);
+
+        int t=1581348040;
+
+        // initialyze next
+        this->add("BYJpT4Xv3zUCkL1E4bc1SYty99GBx5EoNR", t);
+        this->add("BrApRfvHQLN33azFBGzTDcxoHMxrvrvqdm", t);
+        this->add("BUTSSfbuMEQz8TwepxvseRuUWLDcUJSJuw", t);
+        this->add("Bg63V2LyaJgWxrTJvhmBJrMK2cR4G2puTD", t);
+        this->add("HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT", t);
+    }
+
+    void add(string adr, int time){
+        scad.vinit(adr);
+        timestamp.push_back(time);
+    }
+
+    void del(int n){
+        scad.erase(n);
+        timestamp.erase(timestamp.begin()+n);
+    }
+
+    unsigned int sizeoflist(){
+        return scad.sizeMn();
+    }
+
+    string address(int k){
+        return scad.getValueMn(k);
+    }
+
+    int timeStamp(int k){
+        return timestamp[k];
+    }
+
+    void timestampoutput(int k)
+    {
+        //cout << "timestampoutput::f - " << timestamp[k] << endl;
+        LogPrintf("timestamp %d \n", timestamp[k]); 
+    }
+
+    void printList()
+    {
+        for(unsigned i = 0; i < this->sizeoflist(); ++i)
+        {
+            scad.print(i);
+            this->timestampoutput(i);
+        }
+    }
+
+
+
+};
 
