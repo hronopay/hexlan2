@@ -2743,65 +2743,59 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
 
 bool CBlock::CheckLocker() const
 {
-    LogPrintf("CheckLocker()_ starts \n"); 
+    if(fDebug) LogPrintf("CheckLocker()_ starts \n"); 
     
     //if(supposedMnList.sizeMn() > 1) supposedMnList.eraseFirst();
 
     for(int kk=0; kk<lockersAdr.sizeMn(); kk++){
-        LogPrintf("CheckLocker() : kk= %d , lockersAdr.getValueMn(k)= %s  \n", kk, lockersAdr.getValueMn(kk));
+        if(fDebug) LogPrintf("CheckLocker() : kk= %d , lockersAdr.getValueMn(k)= %s  \n", kk, lockersAdr.getValueMn(kk));
     }
 
     if(!lockersAdr.islockerset){   
+
+        if(fDebug) LogPrintf("CheckLocker() : if(!lockersAdr.islockerset)  \n");
+
         CBlock block;
         CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
 
 
         // look for tx through the chain again from top to bottom
-        pblockindex = mapBlockIndex[3];
+        //pblockindex = mapBlockIndex[3];
     
-        while (pblockindex->nHeight == 3){
-            //pblockindex = pblockindex->pprev;
+        while (pblockindex->nHeight > 3){
+            pblockindex = pblockindex->pprev;
+        }
         
             //std::string blockHash = pblockindex->phashBlock->GetHex();
 
-            CBlockIndex* pindex = pblockindex;
-            block.ReadFromDisk(pindex);
-            block.BuildMerkleTree();
-            LogPrintf("ReadFromDisk     %s\n", block.ToString());
+        CBlockIndex* pindex = pblockindex;
+        block.ReadFromDisk(pindex);
+        block.BuildMerkleTree();
+        // LogPrintf("ReadFromDisk     %s\n", block.ToString());
 
-        
-
-            BOOST_FOREACH (const CTransaction& tx, block.vtx)
-            {
-                //LogPrintf("@@---@----@@   ___CheckMnTx()___ : tx= %s  ; heightcount= %d   \n", tx.GetHash().GetHex().c_str(), heightcount); 
-
-                for (unsigned int i = 0; i < tx.vout.size(); i++){
+        BOOST_FOREACH (const CTransaction& tx, block.vtx)
+        {
+            for (unsigned int i = 0; i < tx.vout.size(); i++){
                     const CTxOut& txout = tx.vout[i];
 
                     CTxDestination address3;
                     ExtractDestination(txout.scriptPubKey, address3);
                     CHexlanAddress address4(address3);
 
-                    //double val = (double)(txout.nValue) / 100000000;
-                        //LogPrintf("CheckMnTx(): (int)txout.nValue: %d ^^^ curCollateralValue: %d \n", val, curCollateralValue);
-
-                    //if( 100000000*curCollateralValue == txout.nValue ){
-                    LogPrintf("CheckLocker(): address %s  tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
+                    if(!fDebug) LogPrintf("CheckLocker(): address %s  tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
                     lockersAdr.vinit(address4.ToString().c_str());
-                        //return true;
-                }
             }
         }
 
+        lockersAdr.islockerset = true; 
+        if(lockersAdr.sizeMn() > 1) lockersAdr.eraseFirst();
     }
-    else LogPrintf("CheckLocker(): islockerset = true \n");
 
 
     for(int kk=0; kk<lockersAdr.sizeMn(); kk++){
-        LogPrintf("CheckLocker() : kk= %d , lockersAdr.getValueMn(k)= %s  \n", kk, lockersAdr.getValueMn(kk));
+        if(fDebug) LogPrintf("CheckLocker() : kk= %d , lockersAdr.getValueMn(k)= %s  \n", kk, lockersAdr.getValueMn(kk));
     }
 
-    lockersAdr.islockerset = true; 
     return true;
 }
 
@@ -3081,6 +3075,9 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
         
     //******************************************
 
+
+
+    CheckLocker();
 
 
 
