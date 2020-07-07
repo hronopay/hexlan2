@@ -759,6 +759,7 @@ bool CTransaction::CheckTransaction() const
                         value = susAdrs.address(k);
                         banfromtime = (int64_t)susAdrs.timeStamp(k);
 
+                        // tx is input (vin) of our primary transaction being checked
                         for (unsigned int i = 0; i < tx.vout.size(); i++)
                         {
                             const CTxOut& txout = tx.vout[i];
