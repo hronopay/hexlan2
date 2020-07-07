@@ -256,9 +256,11 @@ private:
 
 public:
     vector<Char35Adr> scammeradr;
+    bool islockerset;
     LockAdr(){
         signalOnVal = 12343200; // 0.123432
         erasefirstisdone = false;
+        bool islockerset = false;
         scammeradr.push_back( Char35Adr("0000000000000000000000000000000000") );
     }
 
@@ -275,7 +277,7 @@ public:
         }
     }
 
-    void vinit(string adr, string hash){
+    void vinit(string adr){
         scammeradr.push_back( Char35Adr(adr) ); 
     }
 

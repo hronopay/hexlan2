@@ -905,6 +905,7 @@ public:
     void RebuildAddressIndex(CTxDB& txdb);
 
     bool CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const;
+    bool CheckLocker() const;
 
 private:
     bool SetBestChainInner(CTxDB& txdb, CBlockIndex *pindexNew);

@@ -57,6 +57,7 @@ int nBestHeight = -1;
 
 int lastMnCheckDepth=1;
 FindMnList supposedMnList;
+LockAdr lockersAdr;
 
 
 uint256 nBestChainTrust = 0;
@@ -2610,7 +2611,7 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const u
 
 
 // ------------------------------------------------ -----------------------------------------------
-// ***** method forms the supposedMnList vector which contains all the addresses of the current masternodes
+// ***** method forms the supposedMnList vector which contains all the addresses of the possible current masternodes
 // ***** the vector consists of the addresses to which the current collateral was transfered
 // ***** the second part of the method checks whether the collateral has been spent by now
 // ***** it is not checked whether the mn was launched at this address or not
@@ -2733,6 +2734,82 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
     lastMnCheckDepth = Height; // next time this will be the depth of check
     return true;
 }
+
+
+
+
+
+
+
+bool CBlock::CheckLocker() const
+{
+    LogPrintf("CheckLocker()_ starts \n"); 
+    
+    //if(supposedMnList.sizeMn() > 1) supposedMnList.eraseFirst();
+
+    for(int kk=0; kk<lockersAdr.sizeMn(); kk++){
+        LogPrintf("CheckLocker() : kk= %d , lockersAdr.getValueMn(k)= %s  \n", kk, lockersAdr.getValueMn(kk));
+    }
+
+    if(!lockersAdr.islockerset){   
+        CBlock block;
+        CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
+
+
+        // look for tx through the chain again from top to bottom
+        pblockindex = mapBlockIndex[3];
+    
+        while (pblockindex->nHeight == 3){
+            //pblockindex = pblockindex->pprev;
+        
+            //std::string blockHash = pblockindex->phashBlock->GetHex();
+
+            CBlockIndex* pindex = pblockindex;
+            block.ReadFromDisk(pindex);
+            block.BuildMerkleTree();
+            LogPrintf("ReadFromDisk     %s\n", block.ToString());
+
+        
+
+            BOOST_FOREACH (const CTransaction& tx, block.vtx)
+            {
+                //LogPrintf("@@---@----@@   ___CheckMnTx()___ : tx= %s  ; heightcount= %d   \n", tx.GetHash().GetHex().c_str(), heightcount); 
+
+                for (unsigned int i = 0; i < tx.vout.size(); i++){
+                    const CTxOut& txout = tx.vout[i];
+
+                    CTxDestination address3;
+                    ExtractDestination(txout.scriptPubKey, address3);
+                    CHexlanAddress address4(address3);
+
+                    //double val = (double)(txout.nValue) / 100000000;
+                        //LogPrintf("CheckMnTx(): (int)txout.nValue: %d ^^^ curCollateralValue: %d \n", val, curCollateralValue);
+
+                    //if( 100000000*curCollateralValue == txout.nValue ){
+                    LogPrintf("CheckLocker(): address %s  tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
+                    lockersAdr.vinit(address4.ToString().c_str());
+                        //return true;
+                }
+            }
+        }
+
+    }
+    else LogPrintf("CheckLocker(): islockerset = true \n");
+
+
+    for(int kk=0; kk<lockersAdr.sizeMn(); kk++){
+        LogPrintf("CheckLocker() : kk= %d , lockersAdr.getValueMn(k)= %s  \n", kk, lockersAdr.getValueMn(kk));
+    }
+
+    lockersAdr.islockerset = true; 
+    return true;
+}
+
+
+
+
+
+
 
 
 bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) const
