@@ -257,12 +257,21 @@ private:
 public:
     vector<Char35Adr> scammeradr;
     bool islockerset;
+    bool istxlistset;
+    int txlistsetuntil;
     CLockAdr(){
         signalOnVal = 12343200; // 0.123432
         erasefirstisdone = false;
         islockerset = false;
+        istxlistset = false;
+        txlistsetuntil = 4;
         scammeradr.push_back( Char35Adr("0000000000000000000000000000000000") );
     }
+
+    int getVal(){
+        return this->signalOnVal;
+    }
+
 
     void reInitialyze(){
         if(erasefirstisdone){
@@ -318,7 +327,6 @@ public:
     {
         return scammeradr[i].toString();
     }
-
 
     int sizeMn(){
         return scammeradr.size()/* * sizeof(Char35Adr)*/;

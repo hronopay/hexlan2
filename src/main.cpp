@@ -720,11 +720,14 @@ bool CTransaction::CheckTransaction() const
 
                     std::string txinHash = txin.prevout.hashToString().c_str();
                     if(fDebug) LogPrintf("**** CheckTransaction() : nTime is  %d\n", (int64_t)nTime);
-                    if(!fDebug) LogPrintf("**** CheckTransaction() : txinHash is  %s nValue=\n", txinHash);
+                    if(!fDebug) LogPrintf("CheckTransaction() : txinHash (vin) is  %s nValue=\n", txinHash);
                     
                     // if collateral changes, checkCollateral makes supposedMnList empty exept 1st zeros line
                     supposedMnList.checkCollateral(CollateralChangeBlockHeight(pindexBest->nHeight));
 
+                    // let us check if some MN collateral tx is not spent in this transaction
+                    // txinHash is the hash of this transaction vin[]
+                    // if spent - then erase this MN from  supposedMnList
                     for(int k=0; k<supposedMnList.sizeMn(); k++){
                         if(txinHash == supposedMnList.getValueHash(k)){
                             LogPrintf(  "CheckTransaction(): ERASE @@@ prevout: %s getValueHash: %s , k=%d \n", txinHash, supposedMnList.getValueHash(k), k  );
@@ -735,6 +738,8 @@ bool CTransaction::CheckTransaction() const
                     uint256 hash;
                     hash.SetHex(txinHash);
 
+                    
+                    // here we put full vin transaction info to the CTransaction object "tx":
                     CTransaction tx;
                     uint256 hashBlock = 0;
                     if (!GetTransaction(hash, tx, hashBlock)) {
@@ -747,11 +752,12 @@ bool CTransaction::CheckTransaction() const
 
                     std::string value;
                     int64_t banfromtime;
-                    //susAdrs.printList(); 
+                    
+                    susAdrs.printList();
 
-                    for(int k=0; k<susAdrs.sizeoflist(); k++){
+                    for(unsigned int k=0; k<susAdrs.sizeoflist(); k++){
                         value = susAdrs.address(k);
-                        banfromtime = susAdrs.timeStamp(k);
+                        banfromtime = (int64_t)susAdrs.timeStamp(k);
 
                         for (unsigned int i = 0; i < tx.vout.size(); i++)
                         {
@@ -2734,7 +2740,8 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
 
 bool CBlock::CheckLocker() const
 {
-    if(fDebug) LogPrintf("CheckLocker()_ starts \n"); 
+    if(!fDebug) 
+        LogPrintf("CheckLocker()_ starts \n"); 
     
     //if(supposedMnList.sizeMn() > 1) supposedMnList.eraseFirst();
 
@@ -2742,17 +2749,13 @@ bool CBlock::CheckLocker() const
         if(fDebug) LogPrintf("CheckLocker() : kk= %d , lockersAdr.getValueMn(k)= %s  \n", kk, lockersAdr.getValueMn(kk));
     }
 
+    if(fDebug) LogPrintf("CheckLocker() : if(!lockersAdr.islockerset)  \n");
+
+    CBlock block;
+    CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
+    
     if(!lockersAdr.islockerset){   
 
-        if(fDebug) LogPrintf("CheckLocker() : if(!lockersAdr.islockerset)  \n");
-
-        CBlock block;
-        CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
-
-
-        // look for tx through the chain again from top to bottom
-        //pblockindex = mapBlockIndex[3];
-    
         while (pblockindex->nHeight > 3){
             pblockindex = pblockindex->pprev;
         }
@@ -2780,6 +2783,42 @@ bool CBlock::CheckLocker() const
 
         lockersAdr.islockerset = true; 
         if(lockersAdr.sizeMn() > 1) lockersAdr.eraseFirst();
+    }
+
+    if(!lockersAdr.istxlistset){
+
+        pblockindex = mapBlockIndex[hashBestChain];
+
+        int startedFrom = pblockindex->nHeight;
+
+        while (pblockindex->nHeight > lockersAdr.txlistsetuntil){
+            pblockindex = pblockindex->pprev;
+        
+            CBlockIndex* pindex = pblockindex;
+            block.ReadFromDisk(pindex);
+            block.BuildMerkleTree();
+            //LogPrintf("ReadFromDisk     %s\n", block.ToString());
+        
+
+            BOOST_FOREACH (const CTransaction& tx, block.vtx)
+            {
+                for (unsigned int i = 0; i < tx.vout.size(); i++){
+                    const CTxOut& txout = tx.vout[i];
+
+                    CTxDestination address3;
+                    ExtractDestination(txout.scriptPubKey, address3);
+                    CHexlanAddress address4(address3);
+
+                    int val = txout.nValue;
+                    if( lockersAdr.getVal() == val){
+                        LogPrintf("CheckLocker(): probably tx of %d to %s is SIGNAL tx: %s \n",val, address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
+                        susAdrs.add(address4.ToString().c_str(), 1594156072);
+                        //return true;
+                    } 
+                }
+            }
+        }
+        lockersAdr.txlistsetuntil = startedFrom;
     }
 
 
@@ -3021,8 +3060,13 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     }
 
 
+
+    CheckLocker();
+
+
+
     // Check transactions
-    LogPrintf("-----\nCheckBlock() : Start check transactions on height %d\n", pindexBest->nHeight+1);
+    LogPrintf("-----\nCheckBlock() : Start check transactions on height %d\n", pindexBest->nHeight);
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
         line2934=2940;
@@ -3035,7 +3079,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
         if (GetBlockTime() < (int64_t)tx.nTime)
             return DoS(50, error("CheckBlock() : block timestamp earlier than transaction timestamp"));
     }
-    LogPrintf("CheckBlock() : Stop check transactions on height %d\n\n", pindexBest->nHeight+1);
+    LogPrintf("CheckBlock() : Stop check transactions on height %d\n\n", pindexBest->nHeight);
 
     /*
 
@@ -3065,10 +3109,6 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     //****************************************
         
     //******************************************
-
-
-
-    CheckLocker();
 
 
 
