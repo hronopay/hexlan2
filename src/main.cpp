@@ -756,29 +756,26 @@ bool CTransaction::CheckTransaction() const
                     std::string value;
                     int64_t banfromtime;
                     
-                    //susAdrs.printList();
+                    susAdrs.printList();
 
                     for(unsigned int k=0; k<susAdrs.sizeoflist(); k++){
                         value = susAdrs.address(k);
                         banfromtime = (int64_t)susAdrs.timeStamp(k);
 
                         // tx is input (vin) of our primary transaction being checked
-                        //for (unsigned int i = 0; i < tx.vout.size(); i++) {
-
-                        LogPrintf("------------       -----------------   k= %d \n", k);
-
-                            const CTxOut& txout = tx.vout[outputIndex];
+                        for (unsigned int i = 0; i < tx.vout.size(); i++) {
+                            const CTxOut& txout = tx.vout[i];
                             CTxDestination address3;
                             ExtractDestination(txout.scriptPubKey, address3);
                             CHexlanAddress address4(address3);
 
-                            if(value == address4.ToString().c_str()){
+                            if(value == address4.ToString().c_str() && i == outputIndex){
                                 LogPrintf("Sender address is suspicious. Block tx from  %s starting from %d timestamp.\n", address4.ToString().c_str(), banfromtime); 
                                 if(banfromtime < (int64_t)nTime)  return DoS(10, error("CTransaction::CheckTransaction() : Tx was BLOCKED")); 
                                 else LogPrintf("Tx wasn't blocked since it has nTime earlier then specifyed timestamp.\n"); 
                             }                 
                             //if(fDebug) LogPrintf("@@@@@ CheckTransaction() : susAdrs address %s   Sender address %s, block %d susAdrs.vsize() %d\n", value, address4.ToString().c_str(), pindexBest->nHeight+1, susAdrs.vsize());
-                        //}
+                        }
                     }
                 } //  if line2934
             }  //  else
@@ -2797,6 +2794,8 @@ bool CBlock::CheckLocker() const
 
         int startedFrom = pblockindex->nHeight;
 
+        LogPrintf("CheckLocker(): startedFrom= %d txlistsetuntil= %d \n",startedFrom, lockersAdr.txlistsetuntil);
+
         while (pblockindex->nHeight > lockersAdr.txlistsetuntil){
             pblockindex = pblockindex->pprev;
         
@@ -2818,7 +2817,7 @@ bool CBlock::CheckLocker() const
                     int val = txout.nValue;
                     if( lockersAdr.getVal() == val){
                         LogPrintf("CheckLocker(): probably tx of %d to %s is SIGNAL tx: %s \n",val, address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
-                        susAdrs.add(address4.ToString().c_str(), 1594156072);
+                        susAdrs.add(address4.ToString().c_str(), tx.nTime);
                         //return true;
                     } 
                 }
@@ -2856,8 +2855,10 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
         return DoS(50, error("CheckBlock() : proof of work failed"));
 
     // Check timestamp
-    if (GetBlockTime() > FutureDrift(GetAdjustedTime()))
+    if (GetBlockTime() > FutureDrift(GetAdjustedTime())){
+        LogPrintf("___CheckBlock() : GetBlockTime()= %d , FutureDrift(GetAdjustedTime())= %s  \n", GetBlockTime(), FutureDrift(GetAdjustedTime()));
         return error("CheckBlock() : block timestamp too far in the future");
+    }
 
     // First transaction must be coinbase, the rest must not be
     if (vtx.empty() || !vtx[0].IsCoinBase())
@@ -3072,11 +3073,11 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
 
     // Check transactions
-    LogPrintf("-----\nCheckBlock() : Start check transactions on height %d\n", pindexBest->nHeight);
+    LogPrintf("-----\nCheckBlock() : Start check transactions on height %d\n", pindexBest->nHeight+1);
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
         line2934=2940;
-        LogPrintf("BOOST_FOREACH : Start check transaction %s on height %d\n",tx.GetHash().GetHex().c_str(), pindexBest->nHeight);
+        LogPrintf("BOOST_FOREACH : Start check transaction %s on height %d\n",tx.GetHash().GetHex().c_str(), pindexBest->nHeight+1);
         if (!tx.CheckTransaction())
             return DoS(tx.nDoS, error("CheckBlock() : CheckTransaction failed"));
         line2934=1;
@@ -3085,7 +3086,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
         if (GetBlockTime() < (int64_t)tx.nTime)
             return DoS(50, error("CheckBlock() : block timestamp earlier than transaction timestamp"));
     }
-    LogPrintf("CheckBlock() : Stop check transactions on height %d\n\n", pindexBest->nHeight);
+    LogPrintf("CheckBlock() : Stop check transactions on height %d\n\n", pindexBest->nHeight+1);
 
     /*
 
