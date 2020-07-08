@@ -268,6 +268,14 @@ public:
         scammeradr.push_back( Char35Adr("0000000000000000000000000000000000") );
     }
 
+    int getTxListSetUntill(){
+        return txlistsetuntil;
+    }
+
+    void setTxListSetUntill(int height){
+        txlistsetuntil = height;
+    }
+
     int getVal(){
         return this->signalOnVal;
     }

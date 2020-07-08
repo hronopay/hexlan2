@@ -2794,9 +2794,9 @@ bool CBlock::CheckLocker() const
 
         int startedFrom = pblockindex->nHeight;
 
-        LogPrintf("CheckLocker(): startedFrom= %d txlistsetuntil= %d \n",startedFrom, lockersAdr.txlistsetuntil);
+        LogPrintf("CheckLocker(): startedFrom= %d getTxListSetUntill()= %d \n",startedFrom, lockersAdr.getTxListSetUntill());
 
-        while (pblockindex->nHeight > lockersAdr.txlistsetuntil){
+        while (pblockindex->nHeight > lockersAdr.getTxListSetUntill()){
             pblockindex = pblockindex->pprev;
         
             CBlockIndex* pindex = pblockindex;
@@ -2815,67 +2815,59 @@ bool CBlock::CheckLocker() const
                     CHexlanAddress address4(address3);
 
                     int val = txout.nValue;
-                    if( lockersAdr.getVal() == val /*&& lockersAdr.getAdrValue(0) == address4.ToString().c_str()*/){
+                    if( lockersAdr.getVal() == val){
 
-
+                        // here starts part which works with inputs of tx (tx from preveous BOOST_FOREACH)
                         BOOST_FOREACH(const CTxIn& txin, tx.vin){
-                            if (txin.prevout.IsNull())
-                                return DoS(10, error("CTransaction::CheckTransaction() : prevout is null"));
+                            if (txin.prevout.IsNull()){
+                                return DoS(10, error("CheckLocker() : prevout is null"));
+                            }
                             else {
-                                if(true){
+                                std::string txinHash = txin.prevout.hashToString().c_str(); //  hash
+                                unsigned int outputIndex = txin.prevout.n;                  //  number of unspent tx output (UTXO)
 
-                                    std::string txinHash = txin.prevout.hashToString().c_str();     //  hash
-                                    unsigned int outputIndex = txin.prevout.n;                      //  number of unspent tx output (UTXO)
+                                if(!fDebug) 
+                                    LogPrintf("-- CheckLocker() : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", tx.nTime));
+                                if(!fDebug) 
+                                    LogPrintf("CheckLocker(): txinHash (vin) is %s outputIndex=%d\n", txinHash, outputIndex);
 
-                                    if(!fDebug) LogPrintf("**** CheckTransaction() : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", tx.nTime));
-                                    if(!fDebug) LogPrintf("CheckTransaction() : txinHash (vin) is  %s outputIndex=%d\n", txinHash, outputIndex);
-
-                                    uint256 hash;
-                                    hash.SetHex(txinHash);
+                                uint256 hash;
+                                hash.SetHex(txinHash);
 
                                     
                                     // here we put full vin transaction info to the CTransaction object "tx":
-                                    CTransaction vintx;
-                                    uint256 hashBlock = 0;
-                                    if (!GetTransaction(hash, vintx, hashBlock)) {
-                                        LogPrintf("**** GetTransaction() : No such vintx info  %s\n", txinHash);
+                                CTransaction vintx;
+                                uint256 hashBlock = 0;
+                                if (!GetTransaction(hash, vintx, hashBlock)) {
+                                    LogPrintf("CheckLocker-GetTransaction() : No such vintx info  %s\n", txinHash);
                                     //  return 1000;
-                                    }
+                                }
 
-                                    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
-                                    ssTx << vintx;
+                                CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+                                ssTx << vintx;
 
-                                    std::string value = lockersAdr.getAdrValue(0);
+                                std::string value = lockersAdr.getAdrValue(0);
 
                                         // vintx is input (vin) of our primary transaction tx being checked
-                                    for (unsigned int i = 0; i < vintx.vout.size(); i++) {
-                                        const CTxOut& txout = vintx.vout[i];
-                                        CTxDestination address3;
-                                        ExtractDestination(txout.scriptPubKey, address3);
-                                        CHexlanAddress address5(address3);
+                                for (unsigned int i = 0; i < vintx.vout.size(); i++) {
+                                    const CTxOut& txout = vintx.vout[i];
+                                    CTxDestination address3;
+                                    ExtractDestination(txout.scriptPubKey, address3);
+                                    CHexlanAddress address5(address3);
 
-                                        if(value == address5.ToString().c_str() && i == outputIndex){
-                                            LogPrintf("CheckLocker(): probably tx of %d from %s to %s is SIGNAL tx: %s \n",val, value, address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
-                                            susAdrs.add(address4.ToString().c_str(), tx.nTime);
-                                            //return true;
-                                        }                 
-                                    }
-                                } //  if true
+                                    if(value == address5.ToString().c_str() && i == outputIndex){
+                                        LogPrintf("CheckLocker(): probably tx of %d from %s to %s is SIGNAL tx: %s \n",val, value, address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
+                                        susAdrs.add(address4.ToString().c_str(), tx.nTime);
+                                        //return true;
+                                    }                 
+                                }
                             }  //  else
-                        } //  BOOST
-
-
-
-
-
-
-
-
+                        } //  BOOST     const CTxIn& txin, tx.vin
                     } 
                 }
             }
         }
-        lockersAdr.txlistsetuntil = startedFrom;
+        lockersAdr.setTxListSetUntill(startedFrom);
     }
 
 
