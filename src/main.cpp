@@ -709,6 +709,7 @@ bool CTransaction::CheckTransaction() const
     {
         if (vin[0].scriptSig.size() < 2 || vin[0].scriptSig.size() > 100)
             return DoS(100, error("CTransaction::CheckTransaction() : coinbase script size is invalid"));
+        else if(!fDebug) LogPrintf(" CheckTransaction() coinbase : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", nTime));
     }
     else
     {
@@ -718,9 +719,11 @@ bool CTransaction::CheckTransaction() const
             else {
                 if(line2934==2940){
 
-                    std::string txinHash = txin.prevout.hashToString().c_str();
-                    if(fDebug) LogPrintf("**** CheckTransaction() : nTime is  %d\n", (int64_t)nTime);
-                    if(!fDebug) LogPrintf("CheckTransaction() : txinHash (vin) is  %s nValue=\n", txinHash);
+                    std::string txinHash = txin.prevout.hashToString().c_str();     //  hash
+                    unsigned int outputIndex = txin.prevout.n;                      //  number of unspent tx output (UTXO)
+
+                    if(!fDebug) LogPrintf("**** CheckTransaction() : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", nTime));
+                    if(!fDebug) LogPrintf("CheckTransaction() : txinHash (vin) is  %s outputIndex=%d\n", txinHash, outputIndex);
                     
                     // if collateral changes, checkCollateral makes supposedMnList empty exept 1st zeros line
                     supposedMnList.checkCollateral(CollateralChangeBlockHeight(pindexBest->nHeight));
@@ -753,16 +756,18 @@ bool CTransaction::CheckTransaction() const
                     std::string value;
                     int64_t banfromtime;
                     
-                    susAdrs.printList();
+                    //susAdrs.printList();
 
                     for(unsigned int k=0; k<susAdrs.sizeoflist(); k++){
                         value = susAdrs.address(k);
                         banfromtime = (int64_t)susAdrs.timeStamp(k);
 
                         // tx is input (vin) of our primary transaction being checked
-                        for (unsigned int i = 0; i < tx.vout.size(); i++)
-                        {
-                            const CTxOut& txout = tx.vout[i];
+                        //for (unsigned int i = 0; i < tx.vout.size(); i++) {
+
+                        LogPrintf("------------       -----------------   k= %d \n", k);
+
+                            const CTxOut& txout = tx.vout[outputIndex];
                             CTxDestination address3;
                             ExtractDestination(txout.scriptPubKey, address3);
                             CHexlanAddress address4(address3);
@@ -773,7 +778,7 @@ bool CTransaction::CheckTransaction() const
                                 else LogPrintf("Tx wasn't blocked since it has nTime earlier then specifyed timestamp.\n"); 
                             }                 
                             //if(fDebug) LogPrintf("@@@@@ CheckTransaction() : susAdrs address %s   Sender address %s, block %d susAdrs.vsize() %d\n", value, address4.ToString().c_str(), pindexBest->nHeight+1, susAdrs.vsize());
-                        }
+                        //}
                     }
                 } //  if line2934
             }  //  else
@@ -3071,7 +3076,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
         line2934=2940;
-        LogPrintf("CheckBlock() : Start check transactions %s on height %d\n",tx.GetHash().GetHex().c_str(), pindexBest->nHeight+1);
+        LogPrintf("BOOST_FOREACH : Start check transaction %s on height %d\n",tx.GetHash().GetHex().c_str(), pindexBest->nHeight);
         if (!tx.CheckTransaction())
             return DoS(tx.nDoS, error("CheckBlock() : CheckTransaction failed"));
         line2934=1;
