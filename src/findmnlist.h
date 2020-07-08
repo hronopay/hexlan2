@@ -323,7 +323,7 @@ public:
             scammeradr[i].f();
     }
 
-    string getValueMn(int i)
+    string getAdrValue(int i)
     {
         return scammeradr[i].toString();
     }
@@ -372,7 +372,7 @@ public:
     }
 
     string address(int k){
-        return scad.getValueMn(k);
+        return scad.getAdrValue(k);
     }
 
     int timeStamp(int k){
@@ -382,7 +382,7 @@ public:
     void timestampoutput(int k)
     {
         //cout << "timestampoutput::f - " << timestamp[k] << endl;
-        LogPrintf("timestamp %d \n", timestamp[k]); 
+        LogPrintf("timestamp %d = %s\n", timestamp[k], DateTimeStrFormat("%x %H:%M:%S", timestamp[k])); 
     }
 
     void printList()

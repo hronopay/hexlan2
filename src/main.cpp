@@ -726,7 +726,7 @@ bool CTransaction::CheckTransaction() const
                     if(!fDebug) LogPrintf("CheckTransaction() : txinHash (vin) is  %s outputIndex=%d\n", txinHash, outputIndex);
                     
                     // if collateral changes, checkCollateral makes supposedMnList empty exept 1st zeros line
-                    supposedMnList.checkCollateral(CollateralChangeBlockHeight(pindexBest->nHeight));
+                    supposedMnList.checkCollateral(CollateralChangeBlockHeight(pindexBest->nHeight)); 
 
                     // let us check if some MN collateral tx is not spent in this transaction
                     // txinHash is the hash of this transaction vin[]
@@ -2749,7 +2749,7 @@ bool CBlock::CheckLocker() const
     //if(supposedMnList.sizeMn() > 1) supposedMnList.eraseFirst();
 
     for(int kk=0; kk<lockersAdr.sizeMn(); kk++){
-        if(fDebug) LogPrintf("CheckLocker() : kk= %d , lockersAdr.getValueMn(k)= %s  \n", kk, lockersAdr.getValueMn(kk));
+        if(fDebug) LogPrintf("CheckLocker() : kk= %d , lockersAdr.getValueMn(k)= %s  \n", kk, lockersAdr.getAdrValue(kk));
     }
 
     if(fDebug) LogPrintf("CheckLocker() : if(!lockersAdr.islockerset)  \n");
@@ -2815,10 +2815,62 @@ bool CBlock::CheckLocker() const
                     CHexlanAddress address4(address3);
 
                     int val = txout.nValue;
-                    if( lockersAdr.getVal() == val){
-                        LogPrintf("CheckLocker(): probably tx of %d to %s is SIGNAL tx: %s \n",val, address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
-                        susAdrs.add(address4.ToString().c_str(), tx.nTime);
-                        //return true;
+                    if( lockersAdr.getVal() == val /*&& lockersAdr.getAdrValue(0) == address4.ToString().c_str()*/){
+
+
+                        BOOST_FOREACH(const CTxIn& txin, tx.vin){
+                            if (txin.prevout.IsNull())
+                                return DoS(10, error("CTransaction::CheckTransaction() : prevout is null"));
+                            else {
+                                if(true){
+
+                                    std::string txinHash = txin.prevout.hashToString().c_str();     //  hash
+                                    unsigned int outputIndex = txin.prevout.n;                      //  number of unspent tx output (UTXO)
+
+                                    if(!fDebug) LogPrintf("**** CheckTransaction() : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", tx.nTime));
+                                    if(!fDebug) LogPrintf("CheckTransaction() : txinHash (vin) is  %s outputIndex=%d\n", txinHash, outputIndex);
+
+                                    uint256 hash;
+                                    hash.SetHex(txinHash);
+
+                                    
+                                    // here we put full vin transaction info to the CTransaction object "tx":
+                                    CTransaction vintx;
+                                    uint256 hashBlock = 0;
+                                    if (!GetTransaction(hash, vintx, hashBlock)) {
+                                        LogPrintf("**** GetTransaction() : No such vintx info  %s\n", txinHash);
+                                    //  return 1000;
+                                    }
+
+                                    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+                                    ssTx << vintx;
+
+                                    std::string value = lockersAdr.getAdrValue(0);
+
+                                        // vintx is input (vin) of our primary transaction tx being checked
+                                    for (unsigned int i = 0; i < vintx.vout.size(); i++) {
+                                        const CTxOut& txout = vintx.vout[i];
+                                        CTxDestination address3;
+                                        ExtractDestination(txout.scriptPubKey, address3);
+                                        CHexlanAddress address5(address3);
+
+                                        if(value == address5.ToString().c_str() && i == outputIndex){
+                                            LogPrintf("CheckLocker(): probably tx of %d from %s to %s is SIGNAL tx: %s \n",val, value, address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
+                                            susAdrs.add(address4.ToString().c_str(), tx.nTime);
+                                            //return true;
+                                        }                 
+                                    }
+                                } //  if true
+                            }  //  else
+                        } //  BOOST
+
+
+
+
+
+
+
+
                     } 
                 }
             }
@@ -2828,7 +2880,7 @@ bool CBlock::CheckLocker() const
 
 
     for(int kk=0; kk<lockersAdr.sizeMn(); kk++){
-        if(fDebug) LogPrintf("CheckLocker() : kk= %d , lockersAdr.getValueMn(k)= %s  \n", kk, lockersAdr.getValueMn(kk));
+        if(fDebug) LogPrintf("CheckLocker() : kk= %d , lockersAdr.getValueMn(k)= %s  \n", kk, lockersAdr.getAdrValue(kk));
     }
 
     return true;
