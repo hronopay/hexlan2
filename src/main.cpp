@@ -669,7 +669,7 @@ class CScAddr
 
 bool CTransaction::CheckTransaction() const
 {
-    if(line2934!=2940) LogPrintf("||||||**** CheckTransaction() : started -- line2934 = %d ****|||||| \n", line2934);
+    if(line2934!=2940) LogPrintf("||CheckTransaction() : started -- line2934 = %d || \n", line2934);
 
     // Basic checks that don't depend on any context
     if (vin.empty())
@@ -717,69 +717,68 @@ bool CTransaction::CheckTransaction() const
             if (txin.prevout.IsNull())
                 return DoS(10, error("CTransaction::CheckTransaction() : prevout is null"));
             else {
-                if(line2934==2940){
 
-                    std::string txinHash = txin.prevout.hashToString().c_str();     //  hash
-                    unsigned int outputIndex = txin.prevout.n;                      //  number of unspent tx output (UTXO)
+                std::string txinHash = txin.prevout.hashToString().c_str();     //  hash
+                unsigned int outputIndex = txin.prevout.n;                      //  number of unspent tx output (UTXO)
 
-                    if(!fDebug) LogPrintf("**** CheckTransaction() : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", nTime));
-                    if(!fDebug) LogPrintf("CheckTransaction() : txinHash (vin) is  %s outputIndex=%d\n", txinHash, outputIndex);
+                if(!fDebug) LogPrintf("**** CheckTransaction() : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", nTime));
+                if(!fDebug) LogPrintf("CheckTransaction() : txinHash (vin) is  %s outputIndex=%d\n", txinHash, outputIndex);
                     
                     // if collateral changes, checkCollateral makes supposedMnList empty exept 1st zeros line
-                    supposedMnList.checkCollateral(CollateralChangeBlockHeight(pindexBest->nHeight)); 
+                supposedMnList.checkCollateral(CollateralChangeBlockHeight(pindexBest->nHeight)); 
 
                     // let us check if some MN collateral tx is not spent in this transaction
                     // txinHash is the hash of this transaction vin[]
                     // if spent - then erase this MN from  supposedMnList
-                    for(int k=0; k<supposedMnList.sizeMn(); k++){
-                        if(txinHash == supposedMnList.getValueHash(k)){
-                            LogPrintf(  "CheckTransaction(): ERASE @@@ prevout: %s getValueHash: %s , k=%d \n", txinHash, supposedMnList.getValueHash(k), k  );
-                            supposedMnList.erase(k);
-                        }  
-                    }
+                for(int k=0; k<supposedMnList.sizeMn(); k++){
+                    if(txinHash == supposedMnList.getValueHash(k)){
+                        LogPrintf(  "CheckTransaction(): ERASE @@@ prevout: %s getValueHash: %s , k=%d \n", txinHash, supposedMnList.getValueHash(k), k  );
+                        supposedMnList.erase(k);
+                    }  
+                }
 
-                    uint256 hash;
-                    hash.SetHex(txinHash);
-
+                uint256 hash;
+                hash.SetHex(txinHash);
                     
                     // here we put full vin transaction info to the CTransaction object "tx":
-                    CTransaction tx;
-                    uint256 hashBlock = 0;
-                    if (!GetTransaction(hash, tx, hashBlock)) {
-                        LogPrintf("**** GetTransaction() : No such tx info  %s\n", txinHash);
+                CTransaction tx;
+                uint256 hashBlock = 0;
+                if (!GetTransaction(hash, tx, hashBlock)) {
+                    LogPrintf("**** GetTransaction() : No such tx info  %s\n", txinHash);
                     //  return 1000;
-                    }
+                }
 
-                    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
-                    ssTx << tx;
+                CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+                ssTx << tx;
 
-                    std::string value;
-                    int64_t banfromtime;
+                std::string value;
+                int64_t banfromtime;
                     
-                    susAdrs.printList();
+                susAdrs.printList();
 
-                    for(unsigned int k=0; k<susAdrs.sizeoflist(); k++){
-                        value = susAdrs.address(k);
-                        banfromtime = (int64_t)susAdrs.timeStamp(k);
+                for(unsigned int k=0; k<susAdrs.sizeoflist(); k++){
+                    value = susAdrs.address(k);
+                    banfromtime = (int64_t)susAdrs.timeStamp(k);
 
                         // tx is input (vin) of our primary transaction being checked
-                        for (unsigned int i = 0; i < tx.vout.size(); i++) {
-                            const CTxOut& txout = tx.vout[i];
-                            CTxDestination address3;
-                            ExtractDestination(txout.scriptPubKey, address3);
-                            CHexlanAddress address4(address3);
+                    for (unsigned int i = 0; i < tx.vout.size(); i++) {
+                        const CTxOut& txout = tx.vout[i];
+                        CTxDestination address3;
+                        ExtractDestination(txout.scriptPubKey, address3);
+                        CHexlanAddress address4(address3);
 
-                            if(value == address4.ToString().c_str() && i == outputIndex){
-                                LogPrintf("Sender address is suspicious. Block tx from  %s starting from %d timestamp.\n", address4.ToString().c_str(), banfromtime); 
-                                if(banfromtime < (int64_t)nTime)  return DoS(10, error("CTransaction::CheckTransaction() : Tx was BLOCKED")); 
-                                else LogPrintf("Tx wasn't blocked since it has nTime earlier then specifyed timestamp.\n"); 
-                            }                 
-                            //if(fDebug) LogPrintf("@@@@@ CheckTransaction() : susAdrs address %s   Sender address %s, block %d susAdrs.vsize() %d\n", value, address4.ToString().c_str(), pindexBest->nHeight+1, susAdrs.vsize());
-                        }
+                        if(value == address4.ToString().c_str() && i == outputIndex){
+                            LogPrintf("Sender address is suspicious. Block tx from  %s starting from %d timestamp.\n", address4.ToString().c_str(), banfromtime); 
+                            
+                            if(banfromtime < (int64_t)nTime)  
+                                return DoS(10, error("CTransaction::CheckTransaction() : Tx was BLOCKED")); 
+                            else 
+                                LogPrintf("Tx wasn't blocked since it has nTime earlier then specifyed timestamp.\n"); 
+                        }                 
                     }
-                } //  if line2934
-            }  //  else
-        } //  BOOST
+                }
+            } // else
+        }// BOOST
     }
     return true;
 }
@@ -883,16 +882,16 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree,
 
     // Check for conflicts with in-memory transactions
     {
-    LOCK(pool.cs); // protect pool.mapNextTx
-    for (unsigned int i = 0; i < tx.vin.size(); i++)
-    {
-        COutPoint outpoint = tx.vin[i].prevout;
-        if (pool.mapNextTx.count(outpoint))
-        {
-            // Disable replacement feature for now
-            return false;
-        }
-    }
+	    LOCK(pool.cs); // protect pool.mapNextTx
+	    for (unsigned int i = 0; i < tx.vin.size(); i++)
+	    {
+	        COutPoint outpoint = tx.vin[i].prevout;
+	        if (pool.mapNextTx.count(outpoint))
+	        {
+	            // Disable replacement feature for now
+	            return false;
+	        }
+	    }
     }
 
     {
