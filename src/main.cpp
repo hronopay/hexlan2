@@ -845,6 +845,8 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree,
 
     line2934 = 849;
 
+    LogPrintf("AcceptToMemoryPool() : line2934=849 check transaction %s on height %d\n",tx.GetHash().GetHex().c_str(), pindexBest->nHeight+1);
+    
     if (!tx.CheckTransaction())
         return error("AcceptToMemoryPool : CheckTransaction failed");
 
@@ -1027,6 +1029,8 @@ bool AcceptableInputs(CTxMemPool& pool, const CTransaction &txo, bool fLimitFree
     string reason;
 
     line2934 = 1032;
+
+    LogPrintf("AcceptableInputs() : line2934=1032 check transaction %s on height %d\n",tx.GetHash().GetHex().c_str(), pindexBest->nHeight+1);
 
     if (!tx.CheckTransaction())
         return error("AcceptableInputs : CheckTransaction failed");
