@@ -731,7 +731,7 @@ bool CTransaction::CheckTransaction() const
                     // txinHash is the hash of this transaction vin[]
                     // if spent - then erase this MN from  supposedMnList
                 for(int k=0; k<supposedMnList.sizeMn(); k++){
-                    if(txinHash == supposedMnList.getValueHash(k)){
+                    if(txinHash == supposedMnList.getValueHash(k) && line2934 == 2940){
                         LogPrintf(  "CheckTransaction(): ERASE @@@ prevout: %s getValueHash: %s , k=%d \n", txinHash, supposedMnList.getValueHash(k), k  );
                         supposedMnList.erase(k);
                     }  
