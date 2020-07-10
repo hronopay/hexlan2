@@ -361,6 +361,7 @@ public:
     CBlList(){
         // initialyze for 1st
         timestamp.push_back(0);
+        on.push_back(333);
 
         int t=1581348040;
 
@@ -385,11 +386,12 @@ public:
         scad.erase(n);
         timestamp.erase(timestamp.begin()+n);
         on.erase(on.begin()+n);
+        LogPrintf(" del done \n"); 
     }
 
     void removeCanceled(){
 
-         LogPrintf("removeCanceled: BEFORE"); 
+         LogPrintf("removeCanceled: BEFORE\n"); 
          this->printList();
 
         for(unsigned i = 0; i < this->sizeoflist(); ++i)
@@ -398,6 +400,7 @@ public:
             {
                 if(address(i) == address(j)) {
                     this->removeOneOrBoth(i,j);
+                    LogPrintf("removeCanceled: INSIDE i=%d  j=%d \n", i, j); 
                     this->removeCanceled(); // iteractive call
                 }
             }
@@ -417,13 +420,14 @@ public:
         else if ( on[i] > on[j] && timestamp[j] >= timestamp[i]) { 
             LogPrintf("removeOneOrBoth: 2 \n"); 
             this->del(j);
-            this->del(j);
+            this->del(i);
         }
         // on[i] < on[j]
         else if ( on[i] < on[j] && timestamp[i] > timestamp[j]) { 
             LogPrintf("removeOneOrBoth: 2-2 \n"); 
             this->del(j);
-            this->del(j);
+            this->del(i);
+            LogPrintf("removeOneOrBoth: 2-2---end \n"); 
         }
         else if ( on[i] < on[j] && timestamp[i] <= timestamp[j]) {
             LogPrintf("removeOneOrBoth: 3 \n"); 
@@ -441,7 +445,7 @@ public:
                 this->del(i);
             }
         }
-
+        return;
     }
 
     unsigned int sizeoflist(){

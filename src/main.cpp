@@ -2878,11 +2878,12 @@ bool CBlock::CheckLocker() const
                                     }                 
                                 }
                             }  //  else 
-                        } //  BOOST     const CTxIn& txin, tx.vin
+                        } //  BOOST   const CTxIn& txin, tx.vin
                     } 
                 }
             }
         }
+        susAdrs.printList();
         susAdrs.removeCanceled();
         lockersAdr.setTxListSetUntill(startedFrom);
     } //  if(!lockersAdr.istxlistset)
