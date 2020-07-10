@@ -755,7 +755,7 @@ bool CTransaction::CheckTransaction() const
                 std::string value;
                 int64_t banfromtime;
                     
-                //susAdrs.printList();
+                susAdrs.printList();
 
                 for(unsigned int k=0; k<susAdrs.sizeoflist(); k++){
                     value = susAdrs.address(k);
@@ -2877,7 +2877,7 @@ bool CBlock::CheckLocker() const
                                         //return true;
                                     }                 
                                 }
-                            }  //  else
+                            }  //  else 
                         } //  BOOST     const CTxIn& txin, tx.vin
                     } 
                 }

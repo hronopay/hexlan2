@@ -379,7 +379,7 @@ public:
     }
 
     void del(int n){
-        LogPrintf(" remove signal= %s address= %s", (on[n]?"ON":"OFF"), address(n)); 
+        LogPrintf(" remove signal= %s address= %s -- ", (on[n]?"ON":"OFF"), address(n)); 
         //scad.print(n);
 
         scad.erase(n);
@@ -388,6 +388,10 @@ public:
     }
 
     void removeCanceled(){
+
+         LogPrintf("removeCanceled: BEFORE"); 
+         this->printList();
+
         for(unsigned i = 0; i < this->sizeoflist(); ++i)
         {
             for(unsigned j = i+1; j < this->sizeoflist(); ++j)
@@ -398,28 +402,44 @@ public:
                 }
             }
         }
+
+         this->printList();
+         LogPrintf("-- removeCanceled: AFTER\n"); 
+
     }
 
     void removeOneOrBoth(unsigned i, unsigned j){
         // on[i] > on[j]
-        if      ( on[i] > on[j] && timestamp[i] > timestamp[j]) this->del(j);
+        if      ( on[i] > on[j] && timestamp[i] > timestamp[j]) {
+                    LogPrintf("removeOneOrBoth: 1 \n"); 
+                    this->del(j);
+        }
         else if ( on[i] > on[j] && timestamp[j] >= timestamp[i]) { 
+            LogPrintf("removeOneOrBoth: 2 \n"); 
             this->del(j);
             this->del(j);
         }
         // on[i] < on[j]
         else if ( on[i] < on[j] && timestamp[i] > timestamp[j]) { 
+            LogPrintf("removeOneOrBoth: 2-2 \n"); 
             this->del(j);
             this->del(j);
         }
-        else if ( on[i] < on[j] && timestamp[i] <= timestamp[j]) this->del(i);
+        else if ( on[i] < on[j] && timestamp[i] <= timestamp[j]) {
+            LogPrintf("removeOneOrBoth: 3 \n"); 
+            this->del(i);
+        }
 
         // on[i] = on[j]   remove that which is later
         else if ( on[i] == on[j] ) {
-            if(timestamp[i] <= timestamp[j]) 
+            if(timestamp[i] <= timestamp[j]){
+                LogPrintf("removeOneOrBoth: 4 \n"); 
                 this->del(j);
-            else  
+            } 
+            else {
+                LogPrintf("removeOneOrBoth: 5 \n"); 
                 this->del(i);
+            }
         }
 
     }
