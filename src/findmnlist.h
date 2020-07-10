@@ -379,6 +379,9 @@ public:
     }
 
     void del(int n){
+        LogPrintf(" remove signal= %s address= %s", (on[n]?"ON":"OFF"), address(n)); 
+        //scad.print(n);
+
         scad.erase(n);
         timestamp.erase(timestamp.begin()+n);
         on.erase(on.begin()+n);
@@ -411,7 +414,7 @@ public:
         }
         else if ( on[i] < on[j] && timestamp[i] <= timestamp[j]) this->del(i);
 
-        // on[i] = on[j]
+        // on[i] = on[j]   remove that which is later
         else if ( on[i] == on[j] ) {
             if(timestamp[i] <= timestamp[j]) 
                 this->del(j);

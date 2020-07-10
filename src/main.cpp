@@ -2872,7 +2872,7 @@ bool CBlock::CheckLocker() const
                                         else if(lockersAdr.getOffVal() == val){
                                             int off=0;
                                             LogPrintf("CheckLocker(): probably tx of %d from %s to %s is OFFSIGNAL tx: %s \n",val, value, address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
-                                            susAdrs.add(address4.ToString().c_str(), tx.nTime, off);
+                                            susAdrs.add(address4.ToString().c_str(), (600+tx.nTime), off);
                                         }
                                         //return true;
                                     }                 
