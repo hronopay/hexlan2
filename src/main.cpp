@@ -2790,9 +2790,12 @@ bool CBlock::CheckLocker() const
         }
 
         lockersAdr.islockerset = true; 
-        if(lockersAdr.sizeMn() > 1) lockersAdr.eraseFirst();
+        if(lockersAdr.sizeMn() > 1) lockersAdr.eraseFirst(); 
+        //since it most likely  is PoW block tx we have 1 output addr and delete zeros string
     }
 
+
+    // here we check if tx is lock or unlock signal and store locksignals
     if(!lockersAdr.istxlistset){
 
         pblockindex = mapBlockIndex[hashBestChain];
@@ -2820,9 +2823,9 @@ bool CBlock::CheckLocker() const
                     CHexlanAddress address4(address3);
 
                     int val = txout.nValue;
-                    if( lockersAdr.getVal() == val){
+                    if(lockersAdr.getOnVal() == val || lockersAdr.getOffVal() == val){
 
-                        // here starts part which works with inputs of tx (tx from preveous BOOST_FOREACH)
+                        // here starts part which works with inputs of tx (tx from current BOOST_FOREACH)
                         BOOST_FOREACH(const CTxIn& txin, tx.vin){
                             if (txin.prevout.IsNull()){
                                 return DoS(10, error("CheckLocker() : prevout is null"));
@@ -2861,8 +2864,16 @@ bool CBlock::CheckLocker() const
                                     CHexlanAddress address5(address3);
 
                                     if(value == address5.ToString().c_str() && i == outputIndex){
-                                        LogPrintf("CheckLocker(): probably tx of %d from %s to %s is SIGNAL tx: %s \n",val, value, address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
-                                        susAdrs.add(address4.ToString().c_str(), tx.nTime);
+                                        if(lockersAdr.getOnVal() == val){
+                                            int on=1;
+                                            LogPrintf("CheckLocker(): probably tx of %d from %s to %s is ONSIGNAL tx: %s \n",val, value, address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
+                                            susAdrs.add(address4.ToString().c_str(), tx.nTime, on);
+                                        }
+                                        else if(lockersAdr.getOffVal() == val){
+                                            int off=0;
+                                            LogPrintf("CheckLocker(): probably tx of %d from %s to %s is OFFSIGNAL tx: %s \n",val, value, address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
+                                            susAdrs.add(address4.ToString().c_str(), tx.nTime, off);
+                                        }
                                         //return true;
                                     }                 
                                 }
@@ -2872,8 +2883,9 @@ bool CBlock::CheckLocker() const
                 }
             }
         }
+        susAdrs.removeCanceled();
         lockersAdr.setTxListSetUntill(startedFrom);
-    }
+    } //  if(!lockersAdr.istxlistset)
 
 
     for(int kk=0; kk<lockersAdr.sizeMn(); kk++){

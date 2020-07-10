@@ -253,6 +253,7 @@ class CLockAdr
 private:
     bool erasefirstisdone;
     unsigned int signalOnVal;
+    unsigned int signalOffVal;
 
 public:
     vector<Char35Adr> scammeradr;
@@ -260,7 +261,8 @@ public:
     bool istxlistset;
     int txlistsetuntil;
     CLockAdr(){
-        signalOnVal = 12343200; // 0.123432
+        signalOnVal = 12343200;  // 0.123432
+        signalOffVal = 12131400; // 0.121314
         erasefirstisdone = false;
         islockerset = false;
         istxlistset = false;
@@ -276,8 +278,12 @@ public:
         txlistsetuntil = height;
     }
 
-    int getVal(){
+    int getOnVal(){
         return this->signalOnVal;
+    }
+
+    int getOffVal(){
+        return this->signalOffVal;
     }
 
 
@@ -351,6 +357,7 @@ private:
 public:
     CLockAdr scad;
     vector<int> timestamp;
+    vector<int> on;
     CBlList(){
         // initialyze for 1st
         timestamp.push_back(0);
@@ -358,21 +365,60 @@ public:
         int t=1581348040;
 
         // initialyze next
-        this->add("BYJpT4Xv3zUCkL1E4bc1SYty99GBx5EoNR", t);
-        this->add("BrApRfvHQLN33azFBGzTDcxoHMxrvrvqdm", t);
-        this->add("BUTSSfbuMEQz8TwepxvseRuUWLDcUJSJuw", t);
-        this->add("Bg63V2LyaJgWxrTJvhmBJrMK2cR4G2puTD", t);
-        this->add("HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT", t);
+        this->add("BYJpT4Xv3zUCkL1E4bc1SYty99GBx5EoNR", t, 1);
+        this->add("BrApRfvHQLN33azFBGzTDcxoHMxrvrvqdm", t, 1);
+        this->add("BUTSSfbuMEQz8TwepxvseRuUWLDcUJSJuw", t, 1);
+        this->add("Bg63V2LyaJgWxrTJvhmBJrMK2cR4G2puTD", t, 1);
+        this->add("HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT", t, 1);
     }
 
-    void add(string adr, int time){
+    void add(string adr, int time, int task){
         scad.vinit(adr);
         timestamp.push_back(time);
+        on.push_back(task);
     }
 
     void del(int n){
         scad.erase(n);
         timestamp.erase(timestamp.begin()+n);
+        on.erase(on.begin()+n);
+    }
+
+    void removeCanceled(){
+        for(unsigned i = 0; i < this->sizeoflist(); ++i)
+        {
+            for(unsigned j = i+1; j < this->sizeoflist(); ++j)
+            {
+                if(address(i) == address(j)) {
+                    this->removeOneOrBoth(i,j);
+                    this->removeCanceled(); // iteractive call
+                }
+            }
+        }
+    }
+
+    void removeOneOrBoth(unsigned i, unsigned j){
+        // on[i] > on[j]
+        if      ( on[i] > on[j] && timestamp[i] > timestamp[j]) this->del(j);
+        else if ( on[i] > on[j] && timestamp[j] >= timestamp[i]) { 
+            this->del(j);
+            this->del(j);
+        }
+        // on[i] < on[j]
+        else if ( on[i] < on[j] && timestamp[i] > timestamp[j]) { 
+            this->del(j);
+            this->del(j);
+        }
+        else if ( on[i] < on[j] && timestamp[i] <= timestamp[j]) this->del(i);
+
+        // on[i] = on[j]
+        else if ( on[i] == on[j] ) {
+            if(timestamp[i] <= timestamp[j]) 
+                this->del(j);
+            else  
+                this->del(i);
+        }
+
     }
 
     unsigned int sizeoflist(){
@@ -390,7 +436,13 @@ public:
     void timestampoutput(int k)
     {
         //cout << "timestampoutput::f - " << timestamp[k] << endl;
-        LogPrintf("timestamp %d = %s\n", timestamp[k], DateTimeStrFormat("%x %H:%M:%S", timestamp[k])); 
+        LogPrintf("timestamp %d = %s ", timestamp[k], DateTimeStrFormat("%x %H:%M:%S", timestamp[k])); 
+    }
+
+    void onOutput(int k)
+    {
+        //cout << "timestampoutput::f - " << timestamp[k] << endl;
+        LogPrintf(" on= %d\n", on[k]); 
     }
 
     void printList()
@@ -399,6 +451,7 @@ public:
         {
             scad.print(i);
             this->timestampoutput(i);
+            this->onOutput(i);
         }
     }
 
