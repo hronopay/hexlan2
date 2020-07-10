@@ -730,6 +730,7 @@ bool CTransaction::CheckTransaction() const
                     // let us check if some MN collateral tx is not spent in this transaction
                     // txinHash is the hash of this transaction vin[]
                     // if spent - then erase this MN from  supposedMnList
+                    // check it only if call is from CheckBlock(), otherwise it erases valid lines sometimes
                 for(int k=0; k<supposedMnList.sizeMn(); k++){
                     if(txinHash == supposedMnList.getValueHash(k) && line2934 == 2940){
                         LogPrintf(  "CheckTransaction(): ERASE @@@ prevout: %s getValueHash: %s , k=%d \n", txinHash, supposedMnList.getValueHash(k), k  );
@@ -761,6 +762,7 @@ bool CTransaction::CheckTransaction() const
                     banfromtime = (int64_t)susAdrs.timeStamp(k);
 
                         // tx is input (vin) of our primary transaction being checked
+                        // check it being called from any method just to prevent include bad tx into the new block
                     for (unsigned int i = 0; i < tx.vout.size(); i++) {
                         const CTxOut& txout = tx.vout[i];
                         CTxDestination address3;
