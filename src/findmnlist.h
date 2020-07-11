@@ -370,11 +370,14 @@ public:
         this->add("BrApRfvHQLN33azFBGzTDcxoHMxrvrvqdm", t, 1);
         this->add("BUTSSfbuMEQz8TwepxvseRuUWLDcUJSJuw", t, 1);
         this->add("Bg63V2LyaJgWxrTJvhmBJrMK2cR4G2puTD", t, 1);
+        this->add("HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT", t, 1);
+
+        this->add("0000000000000000000000000011111111", t, 1);
 
 
 
 
-        for(unsigned i = 1; i < 20; ++i){
+        for(unsigned i = 1; i < 10; ++i){
             this->add("HVwPdYf3cddRjVh4iF3wavWXTBwRquUH8u", (t-i), 1);
         }
 
@@ -400,9 +403,12 @@ public:
         LogPrintf(" remove signal= %s address= %s -- line=%d ", (on[n]?"ON":"OFF"), address(n), n); 
         //scad.print(n);
 
-        scad.erase(n);
-        timestamp.erase(timestamp.begin()+n);
-        on.erase(on.begin()+n);
+        if(n < this->sizeoflist()){
+            scad.erase(n);
+            timestamp.erase(timestamp.begin()+n);
+            on.erase(on.begin()+n);
+        }
+        else LogPrintf(" del crashed n=%d sizeoflist=%d \n", n, this->sizeoflist()); 
         LogPrintf(" del done \n"); 
     }
 
@@ -552,6 +558,8 @@ class CCheckSuspicious
                 }
             }
 
+            filtered.del(0);
+
             LogPrintf("-- filter: AFTER\n"); 
             this->filtered.printList();
             LogPrintf("-- filter: end AFTER\n"); 
@@ -566,9 +574,11 @@ class CCheckSuspicious
             LogPrintf("sort: end BEFORE\n"); 
 
             unsigned int temp = 4294000000;
-            int line;
+            int line=1000;
 
-            for(int i = 0; i < filtered.sizeoflist(); ++i){
+            while(filtered.sizeoflist()>0)
+            {
+//            for(int i = 0; i < filtered.sizeoflist(); ++i){
                 for(int k = (filtered.sizeoflist() - 1); k >= 0; --k)
                 {
                     if(temp > filtered.timeStamp(k)) {    
