@@ -374,8 +374,10 @@ public:
     }
 
     void eraseButFirst(){
-        for(unsigned i = 1; i < this->sizeoflist(); ++i){
-            this->del(i);
+//        for(unsigned i = 1; i < this->sizeoflist(); ++i){
+        for(unsigned i = (this->sizeoflist() - 1); i>0; --i){
+//            this->del(1); // remove 2nd line [del(1)] every time as vector shifts down unerased lines after each call
+            this->del(i); // remove 2nd line [del(1)] every time as vector shifts down unerased lines after each call
         }
         return;
     }
@@ -388,7 +390,7 @@ public:
     }
 
     void del(int n){
-        LogPrintf(" remove signal= %s address= %s -- line=%d", (on[n]?"ON":"OFF"), address(n), n); 
+        LogPrintf(" remove signal= %s address= %s -- line=%d ", (on[n]?"ON":"OFF"), address(n), n); 
         //scad.print(n);
 
         scad.erase(n);
@@ -517,11 +519,10 @@ public:
 class CCheckSuspicious
 {
     private:
-
-    public:
         CBlList filtered;
         CBlList sorted;
-    
+
+    public:
         CCheckSuspicious(std::string str, CBlList susAdrs)
         {
             filtered.eraseButFirst();

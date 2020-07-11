@@ -2890,7 +2890,7 @@ bool CBlock::CheckLocker() const
         CCheckSuspicious myClass(str, susAdrs);
 
         LogPrintf("CheckLocker(): CCheckSuspicious()  stops \n");
-        // susAdrs.removeCanceled();
+        //susAdrs.removeCanceled();
         lockersAdr.setTxListSetUntill(startedFrom);
     } //  if(!lockersAdr.istxlistset)
 
