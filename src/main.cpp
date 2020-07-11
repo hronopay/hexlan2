@@ -2884,10 +2884,13 @@ bool CBlock::CheckLocker() const
             }
         }
         susAdrs.printList();
-        LogPrintf("CheckLocker(): checkClass() starts \n");
-        susAdrs.checkClass();
-        LogPrintf("CheckLocker(): checkClass() stops \n");
-        susAdrs.removeCanceled();
+        LogPrintf("CheckLocker(): CCheckSuspicious() starts \n");
+
+        string str="HVwPdYf3cddRjVh4iF3wavWXTBwRquUH8u";
+        CCheckSuspicious myClass(str, susAdrs);
+
+        LogPrintf("CheckLocker(): CCheckSuspicious()  stops \n");
+        // susAdrs.removeCanceled();
         lockersAdr.setTxListSetUntill(startedFrom);
     } //  if(!lockersAdr.istxlistset)
 

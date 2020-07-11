@@ -350,13 +350,6 @@ public:
  
 
 
-
-
-
-
-
-//-------------------------------------------------------   CBlList   --------------------------------------------------------
-
 class CBlList
 {
 private:
@@ -381,6 +374,9 @@ public:
     }
 
     void eraseButFirst(){
+        for(unsigned i = 1; i < this->sizeoflist(); ++i){
+            this->del(i);
+        }
         return;
     }
 
@@ -392,7 +388,7 @@ public:
     }
 
     void del(int n){
-        LogPrintf(" remove signal= %s address= %s -- ", (on[n]?"ON":"OFF"), address(n)); 
+        LogPrintf(" remove signal= %s address= %s -- line=%d", (on[n]?"ON":"OFF"), address(n), n); 
         //scad.print(n);
 
         scad.erase(n);
@@ -401,12 +397,8 @@ public:
         LogPrintf(" del done \n"); 
     }
 
-    void checkClass(){
-        CBlList filtered;
-        CBlList sorted;
-        filtered.printItem(1);
-        sorted.printItem(5);
-    }
+
+
 
     void printItem(int n){
         LogPrintf(" printItem output: --- "); 
@@ -485,6 +477,10 @@ public:
         return timestamp[k];
     }
 
+    int getOnOff(int k){
+        return on[k];
+    }
+
     void timestampoutput(int k)
     {
         //cout << "timestampoutput::f - " << timestamp[k] << endl;
@@ -514,4 +510,50 @@ public:
 
 
 };
+
+
+
+
+class CCheckSuspicious
+{
+    private:
+
+    public:
+        CBlList filtered;
+        CBlList sorted;
+    
+        CCheckSuspicious(std::string str, CBlList susAdrs)
+        {
+            filtered.eraseButFirst();
+            sorted.eraseButFirst();
+            this->filter(str, susAdrs);
+        }
+
+        void filter(std::string str, CBlList susAdrs)
+        {
+
+            LogPrintf("filter: BEFORE\n"); 
+            this->filtered.printList();
+            LogPrintf("filter: end BEFORE\n"); 
+
+            for(unsigned i = 0; i < susAdrs.sizeoflist(); ++i)
+            {
+                if(susAdrs.address(i) == str) {
+                    this->filtered.add( susAdrs.address(i), susAdrs.timeStamp(i), susAdrs.getOnOff(i) );                
+                }
+            }
+
+            LogPrintf("-- filter: AFTER\n"); 
+            this->filtered.printList();
+            LogPrintf("-- filter: end AFTER\n"); 
+
+        }  
+
+    ~CCheckSuspicious(){
+        LogPrintf(" DESTRUCTOR CCheckSuspicious -----------   Done!!!\n") ;
+    }
+
+
+};
+
 
