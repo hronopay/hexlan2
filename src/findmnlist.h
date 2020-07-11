@@ -568,8 +568,8 @@ class CCheckSuspicious
             unsigned int temp = 4294000000;
             int line;
 
-            for(unsigned i = 0; i < filtered.sizeoflist(); ++i){
-                for(unsigned k = (filtered.sizeoflist() - 1); k >= 0; --k)
+            for(int i = 0; i < filtered.sizeoflist(); ++i){
+                for(int k = (filtered.sizeoflist() - 1); k >= 0; --k)
                 {
                     if(temp > filtered.timeStamp(k)) {    
                         temp = filtered.timeStamp(k);
