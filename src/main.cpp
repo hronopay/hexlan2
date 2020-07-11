@@ -770,12 +770,14 @@ bool CTransaction::CheckTransaction() const
                         CHexlanAddress address4(address3);
 
                         if(value == address4.ToString().c_str() && i == outputIndex){
-                            LogPrintf("Sender address is suspicious. Block tx from  %s starting from %d timestamp.\n", address4.ToString().c_str(), banfromtime); 
-                            
-                            if(banfromtime < (int64_t)nTime)  
+                            LogPrintf("Sender address is listed as suspicious. Lock or unlock tx from  %s starting from %d timestamp.\n", address4.ToString().c_str(), banfromtime); 
+
+                            CCheckSuspicious checkAdr(value, susAdrs);
+
+                            if(checkAdr.isToBeBanned(nTime))    //if(banfromtime < (int64_t)nTime)  
                                 return DoS(10, error("CTransaction::CheckTransaction() : Tx was BLOCKED")); 
                             else 
-                                LogPrintf("Tx wasn't blocked since it has nTime earlier then specifyed timestamp.\n"); 
+                                LogPrintf("Tx wasn't blocked since it has nTime earlier then specifyed timestamp or ban was dismissed.\n"); 
                         }                 
                     }
                 }
@@ -2883,14 +2885,7 @@ bool CBlock::CheckLocker() const
                 }
             }
         }
-        susAdrs.printList();
-        LogPrintf("CheckLocker(): CCheckSuspicious() starts \n");
-
-        string str="HVwPdYf3cddRjVh4iF3wavWXTBwRquUH8u";
-        CCheckSuspicious myClass(str, susAdrs);
-
-        LogPrintf("CheckLocker(): CCheckSuspicious()  stops \n");
-        // susAdrs.removeCanceled();
+        //susAdrs.printList();
         lockersAdr.setTxListSetUntill(startedFrom);
     } //  if(!lockersAdr.istxlistset)
 

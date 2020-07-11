@@ -371,16 +371,12 @@ public:
         this->add("BUTSSfbuMEQz8TwepxvseRuUWLDcUJSJuw", t, 1);
         this->add("Bg63V2LyaJgWxrTJvhmBJrMK2cR4G2puTD", t, 1);
         this->add("HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT", t, 1);
-
+/*
         this->add("0000000000000000000000000011111111", t, 1);
-
-
-
-
         for(unsigned i = 1; i < 10; ++i){
             this->add("HVwPdYf3cddRjVh4iF3wavWXTBwRquUH8u", (t-i), 1);
         }
-
+*/
     }
 
     void eraseButFirst(){
@@ -549,6 +545,17 @@ class CCheckSuspicious
             this->sort();
         }
 
+        bool isToBeBanned(int nTime){
+            int temp=0;
+            for(int k = 0; k<sorted.sizeoflist(); k++)
+            {
+                if(nTime > sorted.timeStamp(k)) {    
+                        temp = sorted.getOnOff(k);
+                }
+            }
+            return (temp != 0);
+        }
+
         void filter(std::string str, CBlList susAdrs)
         {
 
@@ -573,7 +580,6 @@ class CCheckSuspicious
 
         void sort()
         {
-
             LogPrintf("sort: BEFORE\n"); 
             this->sorted.printList();
             LogPrintf("sort: end BEFORE\n"); 
