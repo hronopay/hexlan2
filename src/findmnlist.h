@@ -408,8 +408,13 @@ public:
             timestamp.erase(timestamp.begin()+n);
             on.erase(on.begin()+n);
         }
-        else LogPrintf(" del crashed n=%d sizeoflist=%d \n", n, this->sizeoflist()); 
+        else {
+            LogPrintf(" del crashed n=%d sizeoflist=%d \n", n, this->sizeoflist()); 
+            return;
+        }
+        
         LogPrintf(" del done \n"); 
+        return;
     }
 
 
@@ -480,7 +485,7 @@ public:
         return;
     }
 
-    unsigned int sizeoflist(){
+    int sizeoflist(){
         return scad.sizeMn();
     }
 
