@@ -400,7 +400,7 @@ public:
     }
 
     void del(int n){
-        LogPrintf(" remove signal= %s address= %s -- line=%d ", (on[n]?"ON":"OFF"), address(n), n); 
+        LogPrintf(" remove signal= %s address= %s timestamp=%d-- line=%d ", (on[n]?"ON":"OFF"), address(n), timeStamp(n), n); 
         //scad.print(n);
 
         if(n < this->sizeoflist()){
@@ -412,7 +412,7 @@ public:
             LogPrintf(" del crashed n=%d sizeoflist=%d \n", n, this->sizeoflist()); 
             return;
         }
-        
+
         LogPrintf(" del done \n"); 
         return;
     }
