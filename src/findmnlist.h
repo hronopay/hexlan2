@@ -582,15 +582,13 @@ class CCheckSuspicious
             int temp = 2147000000;
 
             while(filtered.sizeoflist()>0){
-            //for(int i = 0; i < filtered.sizeoflist(); i++){
-                //for(int k = (filtered.sizeoflist() - 1); k >= 0; --k)
                 for(int k = 0; k<filtered.sizeoflist(); k++)
                 {
                     if(temp > filtered.timeStamp(k)) {    
                         temp = filtered.timeStamp(k);
                         line = k;   
                     }
-                    LogPrintf("|| sort: inside i=%d k=%d line=%d temp=%d timeStamp=%d\n",i,k,line,temp,filtered.timeStamp(k)); 
+                    //LogPrintf("|| sort: inside i= k=%d line=%d temp=%d timeStamp=%d\n",k,line,temp,filtered.timeStamp(k)); 
                 }
                 this->sorted.add( filtered.address(line), filtered.timeStamp(line), filtered.getOnOff(line) );
                 this->filtered.del(line);  
