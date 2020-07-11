@@ -370,7 +370,14 @@ public:
         this->add("BrApRfvHQLN33azFBGzTDcxoHMxrvrvqdm", t, 1);
         this->add("BUTSSfbuMEQz8TwepxvseRuUWLDcUJSJuw", t, 1);
         this->add("Bg63V2LyaJgWxrTJvhmBJrMK2cR4G2puTD", t, 1);
-        this->add("HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT", t, 1);
+
+
+
+
+        for(unsigned i = 1; i < 20; ++i){
+            this->add("HVwPdYf3cddRjVh4iF3wavWXTBwRquUH8u", (t-i), 1);
+        }
+
     }
 
     void eraseButFirst(){
@@ -528,6 +535,7 @@ class CCheckSuspicious
             filtered.eraseButFirst();
             sorted.eraseButFirst();
             this->filter(str, susAdrs);
+            this->sort();
         }
 
         void filter(std::string str, CBlList susAdrs)
@@ -547,6 +555,34 @@ class CCheckSuspicious
             LogPrintf("-- filter: AFTER\n"); 
             this->filtered.printList();
             LogPrintf("-- filter: end AFTER\n"); 
+
+        }  
+
+        void sort()
+        {
+
+            LogPrintf("sort: BEFORE\n"); 
+            this->sorted.printList();
+            LogPrintf("sort: end BEFORE\n"); 
+
+            unsigned int temp = 4294000000;
+            int line;
+
+            for(unsigned i = 0; i < filtered.sizeoflist(); ++i){
+                for(unsigned k = (filtered.sizeoflist() - 1); k >= 0; --k)
+                {
+                    if(temp > filtered.timeStamp(k)) {    
+                        temp = filtered.timeStamp(k);
+                        line = k;   
+                    }
+                }
+                this->sorted.add( filtered.address(line), filtered.timeStamp(line), filtered.getOnOff(line) );
+                this->filtered.del(line);          
+            }
+
+            LogPrintf("-- sort: AFTER\n"); 
+            this->sorted.printList();
+            LogPrintf("-- sort: end AFTER\n"); 
 
         }  
 
