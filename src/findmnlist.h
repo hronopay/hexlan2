@@ -350,6 +350,13 @@ public:
  
 
 
+
+
+
+
+
+//-------------------------------------------------------   CBlList   --------------------------------------------------------
+
 class CBlList
 {
 private:
@@ -361,7 +368,7 @@ public:
     CBlList(){
         // initialyze for 1st
         timestamp.push_back(0);
-        on.push_back(333);
+        on.push_back(0);
 
         int t=1581348040;
 
@@ -372,6 +379,11 @@ public:
         this->add("Bg63V2LyaJgWxrTJvhmBJrMK2cR4G2puTD", t, 1);
         this->add("HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT", t, 1);
     }
+
+    void eraseButFirst(){
+        return;
+    }
+
 
     void add(string adr, int time, int task){
         scad.vinit(adr);
@@ -388,6 +400,19 @@ public:
         on.erase(on.begin()+n);
         LogPrintf(" del done \n"); 
     }
+
+    void checkClass(){
+        CBlList filtered;
+        CBlList sorted;
+        filtered.printItem(1);
+        sorted.printItem(5);
+    }
+
+    void printItem(int n){
+        LogPrintf(" printItem output: --- "); 
+        scad.print(n);
+    }
+
 
     void removeCanceled(){
 
@@ -480,6 +505,10 @@ public:
             this->timestampoutput(i);
             this->onOutput(i);
         }
+    }
+
+    ~CBlList(){
+        LogPrintf(" DESTRUCTOR CBlList -----------   Done!!!\n") ;
     }
 
 

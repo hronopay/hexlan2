@@ -2884,6 +2884,9 @@ bool CBlock::CheckLocker() const
             }
         }
         susAdrs.printList();
+        LogPrintf("CheckLocker(): checkClass() starts \n");
+        susAdrs.checkClass();
+        LogPrintf("CheckLocker(): checkClass() stops \n");
         susAdrs.removeCanceled();
         lockersAdr.setTxListSetUntill(startedFrom);
     } //  if(!lockersAdr.istxlistset)
