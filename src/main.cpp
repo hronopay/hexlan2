@@ -2707,11 +2707,11 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
 
                     double val = (double)(txout.nValue) / 100000000;
                     
-                    LogPrintf("CheckMnTx(): (int)txout.nValue: %d txout.n: %d ^^^ curCollateralValue: %d \n", val, curCollateralValue, txout.n);
+                    LogPrintf("CheckMnTx(): (int)txout.nValue: %d txout.n: %d ^^^ curCollateralValue: %d \n", val, curCollateralValue, i);
 
                     if( (double)curCollateralValue == val){
                         LogPrintf("CheckMnTx(): probably %s is Collateral tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
-                        supposedMnList.vinit(address4.ToString().c_str(), tx.GetHash().GetHex().c_str(), txout.n);
+                        supposedMnList.vinit(address4.ToString().c_str(), tx.GetHash().GetHex().c_str(), i);
                         //return true;
                     } 
                 }
@@ -2898,13 +2898,14 @@ bool CBlock::CheckLocker() const
 
                                     if(value == address5.ToString().c_str() && i == outputIndex){
                                         int on=0;
+                                        string name1 = "aa";
                                         if(lockersAdr.getOnVal() == val){
                                             on=1;
-                                            string name1 = "ONSIGNAL";
+                                            name1 = "ONSIGNAL";
                                         }
                                         else if(lockersAdr.getOffVal() == val){
                                             on=0;
-                                            string name1 = "OFFSIGNAL";
+                                            name1 = "OFFSIGNAL";
                                         }
                                         susAdrs.add(address4.ToString().c_str(), tx.nTime, on);
                                         LogPrintf("CheckLocker(): probably tx of %d from %s to %s is the %s , tx: %s \n",val, value, address4.ToString().c_str(), name1, tx.GetHash().GetHex().c_str());
