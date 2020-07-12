@@ -43,7 +43,8 @@ public:
 
     void f()
     {
-        cout << "MnTxHash::f - " << txha << endl;
+        //cout << "MnTxHash::f - " << txha << endl;
+        LogPrintf("MnTxHash::f -  %s \n", txha); 
     }
 
     string toString()
@@ -66,10 +67,12 @@ private:
 public:
     vector<Char35Adr> arr;
     vector<MnTxHash> txhash;
+    vector<int> outInd;
     FindMnList(){
         erasefirstisdone = false;
         lastcollateral = 0;
         arr.push_back( Char35Adr("0000000000000000000000000000000000") );
+        outInd.push_back(0);
         txhash.push_back( MnTxHash("0000000000000000000000000000000000000000000000000000000000000000") );
     }
 
@@ -78,6 +81,7 @@ public:
             erasefirstisdone = false;
         }
         for(int k=0; k<this->sizeMn(); k++){
+            outInd[k] = 0;
             arr[k] = Char35Adr("0000000000000000000000000000000000");
             txhash[k] = MnTxHash("0000000000000000000000000000000000000000000000000000000000000000");
         }
@@ -95,13 +99,15 @@ public:
         }
     }
 
-    void vinit(string adr, string hash){
+    void vinit(string adr, string hash, int outputIndex){
+        outInd.push_back( outputIndex ); 
         arr.push_back( Char35Adr(adr) ); 
         txhash.push_back( MnTxHash(hash) ); 
     }
 
     void eraseFirst(){
         if(!erasefirstisdone){
+            outInd.erase(outInd.begin());
             arr.erase(arr.begin());
             txhash.erase(txhash.begin());
             erasefirstisdone = true;
@@ -115,6 +121,7 @@ public:
 
 
     void erase(int k){
+        outInd.erase(outInd.begin()+k);
         arr.erase(arr.begin()+k);
         txhash.erase(txhash.begin()+k);
         LogPrintf("   ___erase()___  done\n");
@@ -128,6 +135,7 @@ public:
         {
             arr[i].f();
             txhash[i].f();
+            LogPrintf("outInd = %d\n", outInd[i]);
         }
     }
 
@@ -136,6 +144,10 @@ public:
         return arr[i].toString();
     }
 
+    int getValueOI(int i)
+    {
+        return outInd[i];
+    }
 
     string getValueHash(int i)
     {

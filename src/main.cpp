@@ -719,7 +719,7 @@ bool CTransaction::CheckTransaction() const
             else {
 
                 std::string txinHash = txin.prevout.hashToString().c_str();     //  hash
-                unsigned int outputIndex = txin.prevout.n;                      //  number of unspent tx output (UTXO)
+                int outputIndex = txin.prevout.n;                      //  number of unspent tx output (UTXO)
 
                 if(!fDebug) LogPrintf("**** CheckTransaction() : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", nTime));
                 if(!fDebug) LogPrintf("CheckTransaction() : txinHash (vin) is  %s outputIndex=%d\n", txinHash, outputIndex);
@@ -732,8 +732,8 @@ bool CTransaction::CheckTransaction() const
                     // if spent - then erase this MN from  supposedMnList
                     // check it only if call is from CheckBlock(), otherwise it erases valid lines sometimes
                 for(int k=0; k<supposedMnList.sizeMn(); k++){
-                    if(txinHash == supposedMnList.getValueHash(k) && line2934 == 2940){
-                        LogPrintf(  "CheckTransaction(): ERASE @@@ prevout: %s getValueHash: %s , k=%d \n", txinHash, supposedMnList.getValueHash(k), k  );
+                    if(txinHash == supposedMnList.getValueHash(k) && outputIndex == supposedMnList.getValueOI(k) && line2934 == 2940){
+                        LogPrintf(  "CheckTransaction(): ERASE @@@ prevout: %s getValueHash: %s outputIndex=%d, k=%d \n", txinHash, supposedMnList.getValueHash(k), supposedMnList.getValueOI(k), k  );
                         supposedMnList.erase(k);
                     }  
                 }
@@ -742,6 +742,7 @@ bool CTransaction::CheckTransaction() const
                 hash.SetHex(txinHash);
                     
                     // here we put full vin transaction info to the CTransaction object "tx":
+                    // remember this 'tx' is not that one which is checked by method, but it's vin input
                 CTransaction tx;
                 uint256 hashBlock = 0;
                 if (!GetTransaction(hash, tx, hashBlock)) {
@@ -757,30 +758,61 @@ bool CTransaction::CheckTransaction() const
                     
                 susAdrs.printList();
 
-                for(unsigned int k=0; k<susAdrs.sizeoflist(); k++){
-                    value = susAdrs.address(k);
-                    banfromtime = (int64_t)susAdrs.timeStamp(k);
+                // tx is input (vin) of our primary transaction being checked
+                // check it being called from any method just to prevent include bad tx into the new block
 
-                        // tx is input (vin) of our primary transaction being checked
-                        // check it being called from any method just to prevent include bad tx into the new block
-                    for (unsigned int i = 0; i < tx.vout.size(); i++) {
-                        const CTxOut& txout = tx.vout[i];
-                        CTxDestination address3;
-                        ExtractDestination(txout.scriptPubKey, address3);
-                        CHexlanAddress address4(address3);
+                // first get address from which coins were sent (address4)
+                for (unsigned int i = 0; i < tx.vout.size(); i++) {
+                    const CTxOut& txout = tx.vout[i];
+                    CTxDestination address3;
+                    ExtractDestination(txout.scriptPubKey, address3);
+                    CHexlanAddress address4(address3);
+
+                    // then check if it is banned address from list of scammers
+                    for(unsigned int k=0; k<susAdrs.sizeoflist(); k++)
+                    {
+                            value = susAdrs.address(k);
+                            banfromtime = (int64_t)susAdrs.timeStamp(k);
 
                         if(value == address4.ToString().c_str() && i == outputIndex){
-                            LogPrintf("Sender address is listed as suspicious. Lock or unlock tx from  %s starting from %d timestamp.\n", address4.ToString().c_str(), banfromtime); 
+                                LogPrintf("Sender address is listed as suspicious. Lock or unlock tx from  %s starting from %d timestamp.\n", address4.ToString().c_str(), banfromtime); 
 
-                            CCheckSuspicious checkAdr(value, susAdrs);
+                                CCheckSuspicious checkAdr(value, susAdrs);
 
-                            if(checkAdr.isToBeBanned(nTime))    //if(banfromtime < (int64_t)nTime)  
-                                return DoS(10, error("CTransaction::CheckTransaction() : Tx was BLOCKED")); 
-                            else 
-                                LogPrintf("Tx wasn't blocked since it has nTime earlier then specifyed timestamp or ban was dismissed.\n"); 
-                        }                 
-                    }
-                }
+                                if(checkAdr.isToBeBanned(nTime))    //if(banfromtime < (int64_t)nTime)  
+                                    return DoS(10, error("CTransaction::CheckTransaction() : Tx was BLOCKED")); 
+                                else 
+                                    LogPrintf("Tx wasn't blocked since it has nTime earlier then specifyed timestamp or ban was dismissed.\n"); 
+                        } 
+                    } //  for(unsigned int k=0; k<susAdrs.sizeoflist(); k++)
+
+
+                        // and now check out if tx contains ban/unban addr signal
+
+                    if(lockersAdr.getAdrValue(0) == address4.ToString().c_str() && i == outputIndex){ 
+                        for (unsigned int k = 0; k < vout.size(); k++)
+                        {
+                            const CTxOut& txout = vout[i];
+                            CTxDestination address6;
+                            ExtractDestination(txout.scriptPubKey, address6);
+                            CHexlanAddress address7(address6);
+
+                            int on=0;
+                            if(lockersAdr.getOnVal() == txout.nValue){
+                                on=1;
+                                string name1 = "ONSIGNAL";
+                                susAdrs.add(address7.ToString().c_str(), nTime, on);
+                                LogPrintf("CheckLocker(): probably tx of %d from %s to %s is the %s , tx: see above \n",val, lockersAdr.getAdrValue(0), address7.ToString().c_str(), name1);
+                            }
+                            else if(lockersAdr.getOffVal() == txout.nValue){
+                                on=0;
+                                string name1 = "OFFSIGNAL";
+                                susAdrs.add(address7.ToString().c_str(), nTime, on);
+                                LogPrintf("CheckLocker(): probably tx of %d from %s to %s is the %s , tx: see above \n",val, lockersAdr.getAdrValue(0), address7.ToString().c_str(), name1);
+                            }
+                        } // cycle in main tx  for (unsigned int k = 0; k < vout.size(); k++)
+                    }  // if  lockersAdr.getAdrValue(0) == address4              
+                } // cycle in vin tx   for (unsigned int i = 0; i < tx.vout.size(); i++)
             } // else
         }// BOOST
     }
@@ -2674,12 +2706,12 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
                     CHexlanAddress address4(address3);
 
                     double val = (double)(txout.nValue) / 100000000;
-                    //LogPrintf("CheckMnTx(): (int)txout.nValue: %d ^^^ curCollateralValue: %d \n", val, curCollateralValue);
+                    
+                    LogPrintf("CheckMnTx(): (int)txout.nValue: %d txout.n: %d ^^^ curCollateralValue: %d \n", val, curCollateralValue, txout.n);
 
-    //                if( 100000000*curCollateralValue == txout.nValue ){
                     if( (double)curCollateralValue == val){
                         LogPrintf("CheckMnTx(): probably %s is Collateral tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
-                        supposedMnList.vinit(address4.ToString().c_str(),tx.GetHash().GetHex().c_str());
+                        supposedMnList.vinit(address4.ToString().c_str(), tx.GetHash().GetHex().c_str(), txout.n);
                         //return true;
                     } 
                 }
@@ -2694,7 +2726,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
     if(supposedMnList.sizeMn() > 1) supposedMnList.eraseFirst();
 
     for(int kk=0; kk<supposedMnList.sizeMn(); kk++){
-        LogPrintf("CheckMnTx() : kk= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", kk, supposedMnList.getValueMn(kk), supposedMnList.getValueHash(kk));
+        LogPrintf("CheckMnTx() : kk= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s txout.n=%d \n", kk, supposedMnList.getValueMn(kk), supposedMnList.getValueHash(kk), supposedMnList.getValueOI(kk));
     }
 
     //  just make another {} distinct bllock of brackets to kill the variables
@@ -2724,9 +2756,10 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
             {
                 for (unsigned int i = 0; i < tx.vin.size(); i++){
                     const CTxIn& txin = tx.vin[i];
+                    int outputIndex = txin.prevout.n; 
                     for(int k=0; k<supposedMnList.sizeMn(); k++){
-                        if(txin.prevout.hash.ToString().c_str() == supposedMnList.getValueHash(k)){
-                            LogPrintf(  "Found in block Height=%d desiredheight=%d\n -- supposedMnList.getValueHash(k)=%s \n",pblockindex->nHeight, desiredheight, supposedMnList.getValueHash(k));
+                        if(txin.prevout.hash.ToString().c_str() == supposedMnList.getValueHash(k) && outputIndex == supposedMnList.getValueOI(k)){
+                            LogPrintf(  "Found in block Height=%d desiredheight=%d\n -- supposedMnList.getValueHash(k)=%s supposedMnList.getValueOI(k)=%d\n",pblockindex->nHeight, desiredheight, supposedMnList.getValueHash(k), supposedMnList.getValueOI(k));
                             supposedMnList.erase(k);
                         }  
                     }
@@ -2750,11 +2783,9 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
 
 bool CBlock::CheckLocker() const
 {
-    if(!fDebug) 
+    if(fDebug) 
         LogPrintf("CheckLocker()_ starts \n"); 
     
-    //if(supposedMnList.sizeMn() > 1) supposedMnList.eraseFirst();
-
     for(int kk=0; kk<lockersAdr.sizeMn(); kk++){
         if(fDebug) LogPrintf("CheckLocker() : kk= %d , lockersAdr.getValueMn(k)= %s  \n", kk, lockersAdr.getAdrValue(kk));
     }
@@ -2797,7 +2828,7 @@ bool CBlock::CheckLocker() const
     }
 
 
-    // here we check if tx is lock or unlock signal and store locksignals
+    // here we check if tx is lock or unlock signal and store signals
     if(!lockersAdr.istxlistset){
 
         pblockindex = mapBlockIndex[hashBestChain];
@@ -2866,17 +2897,17 @@ bool CBlock::CheckLocker() const
                                     CHexlanAddress address5(address3);
 
                                     if(value == address5.ToString().c_str() && i == outputIndex){
+                                        int on=0;
                                         if(lockersAdr.getOnVal() == val){
-                                            int on=1;
-                                            LogPrintf("CheckLocker(): probably tx of %d from %s to %s is ONSIGNAL tx: %s \n",val, value, address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
-                                            susAdrs.add(address4.ToString().c_str(), tx.nTime, on);
+                                            on=1;
+                                            string name1 = "ONSIGNAL";
                                         }
                                         else if(lockersAdr.getOffVal() == val){
-                                            int off=0;
-                                            LogPrintf("CheckLocker(): probably tx of %d from %s to %s is OFFSIGNAL tx: %s \n",val, value, address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
-                                            susAdrs.add(address4.ToString().c_str(), (600+tx.nTime), off);
+                                            on=0;
+                                            string name1 = "OFFSIGNAL";
                                         }
-                                        //return true;
+                                        susAdrs.add(address4.ToString().c_str(), tx.nTime, on);
+                                        LogPrintf("CheckLocker(): probably tx of %d from %s to %s is the %s , tx: %s \n",val, value, address4.ToString().c_str(), name1, tx.GetHash().GetHex().c_str());
                                     }                 
                                 }
                             }  //  else 
