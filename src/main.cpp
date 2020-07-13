@@ -802,13 +802,13 @@ bool CTransaction::CheckTransaction() const
                                 on=1;
                                 string name1 = "ONSIGNAL";
                                 susAdrs.add(address7.ToString().c_str(), nTime, on);
-                                LogPrintf("CheckLocker(): probably tx of %d from %s to %s is the %s , tx: see above \n",txout.nValue, lockersAdr.getAdrValue(0), address7.ToString().c_str(), name1);
+                                LogPrintf("CheckTransaction(): probably tx of %d from %s to %s is the %s , tx: see above \n",txout.nValue, lockersAdr.getAdrValue(0), address7.ToString().c_str(), name1);
                             }
                             else if(lockersAdr.getOffVal() == txout.nValue){
                                 on=0;
                                 string name1 = "OFFSIGNAL";
                                 susAdrs.add(address7.ToString().c_str(), nTime, on);
-                                LogPrintf("CheckLocker(): probably tx of %d from %s to %s is the %s , tx: see above \n",txout.nValue, lockersAdr.getAdrValue(0), address7.ToString().c_str(), name1);
+                                LogPrintf("CheckTransaction(): probably tx of %d from %s to %s is the %s , tx: see above \n",txout.nValue, lockersAdr.getAdrValue(0), address7.ToString().c_str(), name1);
                             }
                         } // cycle in main tx  for (unsigned int k = 0; k < vout.size(); k++)
                     }  // if  lockersAdr.getAdrValue(0) == address4              

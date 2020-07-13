@@ -405,6 +405,7 @@ public:
         scad.vinit(adr);
         timestamp.push_back(time);
         on.push_back(task);
+        this->removeDups();
     }
 
     void del(int n){
@@ -432,6 +433,26 @@ public:
         LogPrintf(" printItem output: --- "); 
         scad.print(n);
     }
+
+
+    void removeDups(){
+
+        for(int i = this->sizeoflist()-1; i >0; --i)
+        {
+            for(int j = i-1; j >=0; --j)
+            {
+                if(address(i) == address(j) && timeStamp(i) == timeStamp(j) && getOnOff(i) == getOnOff(j)) {
+                    this->del(i);
+                }
+            }
+        }
+
+         LogPrintf("-- removeDups: AFTER\n"); 
+         this->printList();
+         LogPrintf("-- removeDups: AFTER\n"); 
+
+    }
+
 
 
     void removeCanceled(){
