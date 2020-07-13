@@ -669,7 +669,7 @@ class CScAddr
 
 bool CTransaction::CheckTransaction() const
 {
-    if(line2934!=2940) LogPrintf("||CheckTransaction() : started -- line2934 = %d || \n", line2934);
+    if(line2934!=2940 && fDebug) LogPrintf("||CheckTransaction() : started -- line2934 = %d || \n", line2934);
 
     // Basic checks that don't depend on any context
     if (vin.empty())
@@ -709,7 +709,7 @@ bool CTransaction::CheckTransaction() const
     {
         if (vin[0].scriptSig.size() < 2 || vin[0].scriptSig.size() > 100)
             return DoS(100, error("CTransaction::CheckTransaction() : coinbase script size is invalid"));
-        else if(!fDebug) LogPrintf(" CheckTransaction() coinbase : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", nTime));
+        else if(fDebug) LogPrintf(" CheckTransaction() coinbase : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", nTime));
     }
     else
     {
@@ -721,8 +721,8 @@ bool CTransaction::CheckTransaction() const
                 std::string txinHash = txin.prevout.hashToString().c_str();     //  hash
                 int outputIndex = txin.prevout.n;                      //  number of unspent tx output (UTXO)
 
-                if(!fDebug) LogPrintf("**** CheckTransaction() : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", nTime));
-                if(!fDebug) LogPrintf("CheckTransaction() : txinHash (vin) is  %s outputIndex=%d\n", txinHash, outputIndex);
+                if(fDebug) LogPrintf("**** CheckTransaction() : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", nTime));
+                if(fDebug) LogPrintf("CheckTransaction() : txinHash (vin) is  %s outputIndex=%d\n", txinHash, outputIndex);
                     
                     // if collateral changes, checkCollateral makes supposedMnList empty exept 1st zeros line
                 supposedMnList.checkCollateral(CollateralChangeBlockHeight(pindexBest->nHeight)); 
@@ -756,33 +756,33 @@ bool CTransaction::CheckTransaction() const
                 std::string value;
                 int64_t banfromtime;
                     
-                susAdrs.printList();
+                //susAdrs.printList();
 
                 // tx is input (vin) of our primary transaction being checked
                 // check it being called from any method just to prevent include bad tx into the new block
 
                 // first get address from which coins were sent (address4)
-                for (unsigned int i = 0; i < tx.vout.size(); i++) {
+                for (int i = 0; i < tx.vout.size(); i++) {
                     const CTxOut& txout = tx.vout[i];
                     CTxDestination address3;
                     ExtractDestination(txout.scriptPubKey, address3);
                     CHexlanAddress address4(address3);
 
                     // then check if it is banned address from list of scammers
-                    for(unsigned int k=0; k<susAdrs.sizeoflist(); k++)
+                    for(int k=0; k<susAdrs.sizeoflist(); k++)
                     {
                             value = susAdrs.address(k);
                             banfromtime = (int64_t)susAdrs.timeStamp(k);
 
                         if(value == address4.ToString().c_str() && i == outputIndex){
-                                LogPrintf("Sender address is listed as suspicious. Lock or unlock tx from  %s starting from %d timestamp.\n", address4.ToString().c_str(), banfromtime); 
+                                if(!fDebug) LogPrintf("Sender address is listed as suspicious. Lock or unlock tx from  %s starting from %d timestamp. k=%d\n", address4.ToString().c_str(), banfromtime, k); 
 
                                 CCheckSuspicious checkAdr(value, susAdrs);
 
                                 if(checkAdr.isToBeBanned(nTime))    //if(banfromtime < (int64_t)nTime)  
                                     return DoS(10, error("CTransaction::CheckTransaction() : Tx was BLOCKED")); 
                                 else 
-                                    LogPrintf("Tx wasn't blocked since it has nTime earlier then specifyed timestamp or ban was dismissed.\n"); 
+                                    LogPrintf("Tx %s from  %s wasn't blocked since it has nTime earlier then specifyed %d timestamp (%s) or ban was dismissed.\n",txinHash, address4.ToString().c_str(), banfromtime, DateTimeStrFormat("%x %H:%M:%S", banfromtime)); 
                         } 
                     } //  for(unsigned int k=0; k<susAdrs.sizeoflist(); k++)
 
@@ -802,13 +802,13 @@ bool CTransaction::CheckTransaction() const
                                 on=1;
                                 string name1 = "ONSIGNAL";
                                 susAdrs.add(address7.ToString().c_str(), nTime, on);
-                                LogPrintf("CheckTransaction(): probably tx of %d from %s to %s is the %s , tx: see above \n",txout.nValue, lockersAdr.getAdrValue(0), address7.ToString().c_str(), name1);
+                                if(fDebug) LogPrintf("CheckTransaction(): probably tx of %d from %s to %s is the %s , tx: see above \n",txout.nValue, lockersAdr.getAdrValue(0), address7.ToString().c_str(), name1);
                             }
                             else if(lockersAdr.getOffVal() == txout.nValue){
                                 on=0;
                                 string name1 = "OFFSIGNAL";
                                 susAdrs.add(address7.ToString().c_str(), nTime, on);
-                                LogPrintf("CheckTransaction(): probably tx of %d from %s to %s is the %s , tx: see above \n",txout.nValue, lockersAdr.getAdrValue(0), address7.ToString().c_str(), name1);
+                                if(fDebug) LogPrintf("CheckTransaction(): probably tx of %d from %s to %s is the %s , tx: see above \n",txout.nValue, lockersAdr.getAdrValue(0), address7.ToString().c_str(), name1);
                             }
                         } // cycle in main tx  for (unsigned int k = 0; k < vout.size(); k++)
                     }  // if  lockersAdr.getAdrValue(0) == address4              
@@ -881,7 +881,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree,
 
     line2934 = 849;
 
-    LogPrintf("AcceptToMemoryPool() : line2934=849 check transaction %s on height %d\n",tx.GetHash().GetHex().c_str(), pindexBest->nHeight+1);
+    if(fDebug) LogPrintf("AcceptToMemoryPool() : line2934=849 check transaction %s on height %d\n",tx.GetHash().GetHex().c_str(), pindexBest->nHeight+1);
     
     if (!tx.CheckTransaction())
         return error("AcceptToMemoryPool : CheckTransaction failed");
@@ -1066,7 +1066,7 @@ bool AcceptableInputs(CTxMemPool& pool, const CTransaction &txo, bool fLimitFree
 
     line2934 = 1032;
 
-    LogPrintf("AcceptableInputs() : line2934=1032 check transaction %s on height %d\n",tx.GetHash().GetHex().c_str(), pindexBest->nHeight+1);
+    if(fDebug) LogPrintf("AcceptableInputs() : line2934=1032 check transaction %s on height %d\n",tx.GetHash().GetHex().c_str(), pindexBest->nHeight+1);
 
     if (!tx.CheckTransaction())
         return error("AcceptableInputs : CheckTransaction failed");
@@ -2661,7 +2661,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
     int heightcount = Height;
     int curCollateralValue =  (int)GetMNCollateral(Height); 
 
-    LogPrintf("@@#######@@   ___CheckMnTx()___  ; starts \n"); 
+    if(fDebug) LogPrintf("___CheckMnTx()___  ; starts \n"); 
     
     // first check
     desiredheight = (CollateralChangeBlockHeight(Height)-500) > 1 ? (CollateralChangeBlockHeight(Height)-500) : 2 ; 
@@ -2675,7 +2675,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
 
         if(lastMnCheckDepth > 1) desiredheight = lastMnCheckDepth; 
         
-        LogPrintf("@@-----@@   ___CheckMnTx()___  ; desiredheight= %d  Collateral = %d \n", desiredheight, curCollateralValue); 
+        LogPrintf("___CheckMnTx()___  ; desiredheight= %d  Collateral = %d \n", desiredheight, curCollateralValue); 
         if (desiredheight < 0 || desiredheight > nBestHeight)
             return false;
 
@@ -2696,7 +2696,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
 
             BOOST_FOREACH (const CTransaction& tx, block.vtx)
             {
-                //LogPrintf("@@---@----@@   ___CheckMnTx()___ : tx= %s  ; heightcount= %d   \n", tx.GetHash().GetHex().c_str(), heightcount); 
+                //LogPrintf("  ___CheckMnTx()___ : tx= %s  ; heightcount= %d   \n", tx.GetHash().GetHex().c_str(), heightcount); 
 
                 for (unsigned int i = 0; i < tx.vout.size(); i++){
                     const CTxOut& txout = tx.vout[i];
@@ -2707,12 +2707,11 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
 
                     double val = (double)(txout.nValue) / 100000000;
                     
-                    LogPrintf("CheckMnTx(): (int)txout.nValue: %d txout.n: %d ^^^ curCollateralValue: %d \n", val, curCollateralValue, i);
+                    if(fDebug) LogPrintf("CheckMnTx(): (int)txout.nValue: %d txout.n: %d ^^^ curCollateralValue: %d \n", val, curCollateralValue, i);
 
                     if( (double)curCollateralValue == val){
                         LogPrintf("CheckMnTx(): probably %s is Collateral tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
                         supposedMnList.vinit(address4.ToString().c_str(), tx.GetHash().GetHex().c_str(), i);
-                        //return true;
                     } 
                 }
             }
@@ -2726,7 +2725,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
     if(supposedMnList.sizeMn() > 1) supposedMnList.eraseFirst();
 
     for(int kk=0; kk<supposedMnList.sizeMn(); kk++){
-        LogPrintf("CheckMnTx() : kk= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s txout.n=%d \n", kk, supposedMnList.getValueMn(kk), supposedMnList.getValueHash(kk), supposedMnList.getValueOI(kk));
+        if(fDebug) LogPrintf("CheckMnTx() : kk= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s txout.n=%d \n", kk, supposedMnList.getValueMn(kk), supposedMnList.getValueHash(kk), supposedMnList.getValueOI(kk));
     }
 
     //  just make another {} distinct bllock of brackets to kill the variables
@@ -2817,7 +2816,7 @@ bool CBlock::CheckLocker() const
                     ExtractDestination(txout.scriptPubKey, address3);
                     CHexlanAddress address4(address3);
 
-                    if(!fDebug) LogPrintf("CheckLocker(): address %s  tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
+                    if(fDebug) LogPrintf("CheckLocker(): address %s  tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
                     lockersAdr.vinit(address4.ToString().c_str());
             }
         }
@@ -2835,7 +2834,7 @@ bool CBlock::CheckLocker() const
 
         int startedFrom = pblockindex->nHeight;
 
-        LogPrintf("CheckLocker(): startedFrom= %d getTxListSetUntill()= %d \n",startedFrom, lockersAdr.getTxListSetUntill());
+        if(fDebug) LogPrintf("CheckLocker(): startedFrom= %d getTxListSetUntill()= %d \n",startedFrom, lockersAdr.getTxListSetUntill());
 
         while (pblockindex->nHeight > lockersAdr.getTxListSetUntill()){
             pblockindex = pblockindex->pprev;
@@ -2867,9 +2866,9 @@ bool CBlock::CheckLocker() const
                                 std::string txinHash = txin.prevout.hashToString().c_str(); //  hash
                                 unsigned int outputIndex = txin.prevout.n;                  //  number of unspent tx output (UTXO)
 
-                                if(!fDebug) 
+                                if(fDebug) 
                                     LogPrintf("-- CheckLocker() : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", tx.nTime));
-                                if(!fDebug) 
+                                if(fDebug) 
                                     LogPrintf("CheckLocker(): txinHash (vin) is %s outputIndex=%d\n", txinHash, outputIndex);
 
                                 uint256 hash;
@@ -2908,7 +2907,7 @@ bool CBlock::CheckLocker() const
                                             name1 = "OFFSIGNAL";
                                         }
                                         susAdrs.add(address4.ToString().c_str(), tx.nTime, on);
-                                        LogPrintf("CheckLocker(): probably tx of %d from %s to %s is the %s , tx: %s \n",val, value, address4.ToString().c_str(), name1, tx.GetHash().GetHex().c_str());
+                                        LogPrintf("CheckLocker(): probably tx of %d from %s to %s is the %s \n tx: %s, %d time %s \n",val, value, address4.ToString().c_str(), name1, tx.GetHash().GetHex().c_str(), tx.nTime, DateTimeStrFormat("%x %H:%M:%S", tx.nTime));
                                     }                 
                                 }
                             }  //  else 
@@ -3098,15 +3097,18 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         ExtractDestination(pubkey, address1);
                         CHexlanAddress address2(address1);
 
-                        LogPrintf("CheckBlock() : BOOST_FOREACH(CMasternode& mn, vMasternodes) ( %s )  nHeight %d. \n",  address2.ToString().c_str(), pindexBest->nHeight+1);
+                        if(fDebug) LogPrintf("CheckBlock() : BOOST_FOREACH(CMasternode& mn, vMasternodes) ( %s )  nHeight %d. \n",  address2.ToString().c_str(), pindexBest->nHeight+1);
 
                         if(mnRewardPayee == address2) {
                             isPayeeMNode = true;
                         }
                     }
                         
-                    if(isPayeeMNode) LogPrintf("CheckBlock() : standart MN list has been received, MNPayment is OK! \n");
-                    else LogPrintf("CheckBlock() : MN list hasn't been received yet, MNPayment couldn't be checked! \n");
+                    if(isPayeeMNode){ 
+                        if(fDebug) 
+                            LogPrintf("CheckBlock() : standart MN list has been received, MN Payment is OK! \n");
+                    }
+                    else LogPrintf("CheckBlock() : standart MN list hasn't been received yet, MN Payment couldn't be checked! \n");
 
                     int lastHeight = pindexBest->nHeight;
                     std::string rewPayee = mnRewardPayee.ToString().c_str();
@@ -3120,25 +3122,22 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         CheckMnTx(rewPayee, lastHeight, false);
                     }
                     for(int k=0; k<supposedMnList.sizeMn(); k++){
-                        if(rewPayee == supposedMnList.getValueMn(k)) foundInList = true;
-                        if(!fDebug) LogPrintf("CheckBlock() : k= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", k, supposedMnList.getValueMn(k), supposedMnList.getValueHash(k));
+                        if(rewPayee == supposedMnList.getValueMn(k)) 
+                            foundInList = true;
+                        if(fDebug) LogPrintf("CheckBlock() : k= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", k, supposedMnList.getValueMn(k), supposedMnList.getValueHash(k));
                     }
 
                     if(!foundInList) LogPrintf("CheckBlock() : CheckMnTx didn't find the tx in supposedMnList. \n");
                     else  {
-                        LogPrintf("CheckBlock() : ----CheckMnTx has found the tx, MN is OK---- \n");
+                        if(fDebug) LogPrintf("CheckBlock() : CheckMnTx has found the tx, MN is OK \n");
                         foundPaymentAndPayee = true;
                     }
 
                     
                     if(!foundPaymentAndPayee) {
-                        if(!fDebug) { 
-                            LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or winner-payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1); 
-                        }
+                        if(!fDebug) LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or winner-payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1); 
                         
-                        //========  we need to uncomment  the line below  after making check (done!)
                         return DoS(100, error("CheckBlock() : Couldn't find masternode payment or winner payee"));
-
                     } 
                     else {
                         LogPrintf("CheckBlock() : Found payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1);
@@ -3161,18 +3160,14 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
         if(fDebug) { LogPrintf("CheckBlock() : Is initial download, skipping masternode payment check %d\n", pindexBest->nHeight+1); }
     }
 
-
-
     CheckLocker();
 
-
-
     // Check transactions
-    LogPrintf("-----\nCheckBlock() : Start check transactions on height %d\n", pindexBest->nHeight+1);
+    if(fDebug) LogPrintf("-----\nCheckBlock() : Start check transactions on height %d\n", pindexBest->nHeight+1);
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
         line2934=2940;
-        LogPrintf("BOOST_FOREACH : Start check transaction %s on height %d\n",tx.GetHash().GetHex().c_str(), pindexBest->nHeight+1);
+        if(!fDebug) LogPrintf("BOOST_FOREACH : Start check transaction %s on height %d\n",tx.GetHash().GetHex().c_str(), pindexBest->nHeight+1);
         if (!tx.CheckTransaction())
             return DoS(tx.nDoS, error("CheckBlock() : CheckTransaction failed"));
         line2934=1;
@@ -3181,7 +3176,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
         if (GetBlockTime() < (int64_t)tx.nTime)
             return DoS(50, error("CheckBlock() : block timestamp earlier than transaction timestamp"));
     }
-    LogPrintf("CheckBlock() : Stop check transactions on height %d\n\n", pindexBest->nHeight+1);
+    if(fDebug) LogPrintf("CheckBlock() : Stop check transactions on height %d\n\n", pindexBest->nHeight+1);
 
     /*
 

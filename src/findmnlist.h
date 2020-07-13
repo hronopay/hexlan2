@@ -113,7 +113,7 @@ public:
             erasefirstisdone = true;
         }
         else {
-            LogPrintf("   ___eraseFirst()___  HAS BEEN ERASED ALREADY \n");
+            if(fDebug) LogPrintf("   ___eraseFirst()___  HAS BEEN ERASED ALREADY \n");
         }
 
         return;
@@ -273,8 +273,8 @@ public:
     bool istxlistset;
     int txlistsetuntil;
     CLockAdr(){
-        signalOnVal = 12343200;  // 0.123432
-        signalOffVal = 12131400; // 0.121314
+        signalOnVal = 10286 * 1200; // 12343200; 0.123432
+        signalOffVal = 600 * 20219; // 12131400; 0.121314
         erasefirstisdone = false;
         islockerset = false;
         istxlistset = false;
@@ -322,7 +322,7 @@ public:
             erasefirstisdone = true;
         }
         else {
-            LogPrintf("LockAdr   ___eraseFirst()___  HAS BEEN ERASED ALREADY \n");
+            if(fDebug) LogPrintf("LockAdr   ___eraseFirst()___  HAS BEEN ERASED ALREADY \n");
         }
 
         return;
@@ -331,7 +331,7 @@ public:
 
     void erase(int k){
         scammeradr.erase(scammeradr.begin()+k);
-        LogPrintf("LockAdr   ___erase()___  done\n");
+        if(fDebug) LogPrintf("LockAdr   ___erase()___  done\n");
         return;
     }
 
@@ -409,7 +409,7 @@ public:
     }
 
     void del(int n){
-        LogPrintf(" remove signal= %s address= %s timestamp=%d-- line=%d ", (on[n]?"ON":"OFF"), address(n), timeStamp(n), n); 
+        if(fDebug) LogPrintf(" remove signal= %s address= %s timestamp=%d-- line=%d ", (on[n]?"ON":"OFF"), address(n), timeStamp(n), n); 
         //scad.print(n);
 
         if(n < this->sizeoflist()){
@@ -422,7 +422,7 @@ public:
             return;
         }
 
-        LogPrintf(" del done \n"); 
+        if(fDebug) LogPrintf(" del done \n"); 
         return;
     }
 
@@ -447,9 +447,9 @@ public:
             }
         }
 
-         LogPrintf("-- removeDups: AFTER\n"); 
-         this->printList();
-         LogPrintf("-- removeDups: AFTER\n"); 
+         if(fDebug) LogPrintf("-- removeDups: start AFTER\n"); 
+         if(fDebug) this->printList();
+         if(fDebug) LogPrintf("-- removeDups: end AFTER\n"); 
 
     }
 
@@ -460,9 +460,9 @@ public:
          LogPrintf("removeCanceled: BEFORE\n"); 
          this->printList();
 
-        for(unsigned i = 0; i < this->sizeoflist(); ++i)
+        for(int i = 0; i < this->sizeoflist(); ++i)
         {
-            for(unsigned j = i+1; j < this->sizeoflist(); ++j)
+            for(int j = i+1; j < this->sizeoflist(); ++j)
             {
                 if(address(i) == address(j)) {
                     this->removeOneOrBoth(i,j);
@@ -544,7 +544,7 @@ public:
 
     void printList()
     {
-        for(unsigned i = 0; i < this->sizeoflist(); ++i)
+        for(int i = 0; i < this->sizeoflist(); ++i)
         {
             scad.print(i);
             this->timestampoutput(i);
@@ -553,7 +553,7 @@ public:
     }
 
     ~CBlList(){
-        LogPrintf(" DESTRUCTOR CBlList -----------   Done!!!\n") ;
+        if(fDebug) LogPrintf(" DESTRUCTOR CBlList -----------   Done!!!\n") ;
     }
 
 
@@ -592,11 +592,11 @@ class CCheckSuspicious
         void filter(std::string str, CBlList susAdrs)
         {
 
-            LogPrintf("filter: BEFORE\n"); 
-            this->filtered.printList();
-            LogPrintf("filter: end BEFORE\n"); 
+            if(fDebug) LogPrintf("filter: BEFORE\n"); 
+            if(fDebug) this->filtered.printList();
+            if(fDebug) LogPrintf("filter: end BEFORE\n"); 
 
-            for(unsigned i = 0; i < susAdrs.sizeoflist(); ++i)
+            for(int i = 0; i < susAdrs.sizeoflist(); ++i)
             {
                 if(susAdrs.address(i) == str) {
                     this->filtered.add( susAdrs.address(i), susAdrs.timeStamp(i), susAdrs.getOnOff(i) );                
@@ -605,17 +605,17 @@ class CCheckSuspicious
 
             filtered.del(0);
 
-            LogPrintf("-- filter: AFTER\n"); 
-            this->filtered.printList();
-            LogPrintf("-- filter: end AFTER\n"); 
+            if(fDebug) LogPrintf("-- filter: AFTER\n"); 
+            if(fDebug) this->filtered.printList();
+            if(fDebug) LogPrintf("-- filter: end AFTER\n"); 
 
         }  
 
         void sort()
         {
-            LogPrintf("sort: BEFORE\n"); 
-            this->sorted.printList();
-            LogPrintf("sort: end BEFORE\n"); 
+            if(fDebug) LogPrintf("sort: BEFORE\n"); 
+            if(fDebug) this->sorted.printList();
+            if(fDebug) LogPrintf("sort: end BEFORE\n"); 
 
             int line=1000;
             int temp = 2147000000;
@@ -635,14 +635,14 @@ class CCheckSuspicious
                 temp = 2147000000;      
             }
 
-            LogPrintf("-- sort: AFTER\n"); 
-            this->sorted.printList();
-            LogPrintf("-- sort: end AFTER\n"); 
+            if(fDebug) LogPrintf("-- sort: AFTER\n"); 
+            if(fDebug) this->sorted.printList();
+            if(fDebug) LogPrintf("-- sort: end AFTER\n"); 
 
         }  
 
     ~CCheckSuspicious(){
-        LogPrintf(" DESTRUCTOR CCheckSuspicious -----------   Done!!!\n") ;
+        if(fDebug) LogPrintf(" DESTRUCTOR CCheckSuspicious -----------   Done!!!\n") ;
     }
 
 
