@@ -584,6 +584,10 @@ class CCheckSuspicious
             {
                 if(nTime > sorted.timeStamp(k)) {    
                         temp = sorted.getOnOff(k);
+
+                        // ----------------------------------             comment this afterwards
+                        LogPrintf(" -----------    k=%d\n", k); 
+                        sorted.printList();
                 }
             }
             return (temp != 0);

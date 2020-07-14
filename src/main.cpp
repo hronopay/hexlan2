@@ -669,7 +669,8 @@ class CScAddr
 
 bool CTransaction::CheckTransaction() const
 {
-    if(line2934!=2940 && fDebug) LogPrintf("||CheckTransaction() : started -- line2934 = %d || \n", line2934);
+    // if(line2934!=2940 && fDebug) 
+    LogPrintf("||CheckTransaction() : started -- line2934 = %d || \n", line2934);
 
     // Basic checks that don't depend on any context
     if (vin.empty())
@@ -696,7 +697,7 @@ bool CTransaction::CheckTransaction() const
             return DoS(100, error("CTransaction::CheckTransaction() : txout total out of range"));
     }
 
-    // Check for duplicate inputs
+    // Check for duplicate inputs 
     set<COutPoint> vInOutPoints;
     BOOST_FOREACH(const CTxIn& txin, vin)
     {
@@ -721,8 +722,9 @@ bool CTransaction::CheckTransaction() const
                 std::string txinHash = txin.prevout.hashToString().c_str();     //  hash
                 int outputIndex = txin.prevout.n;                      //  number of unspent tx output (UTXO)
 
-                if(fDebug) LogPrintf("**** CheckTransaction() : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", nTime));
-                if(fDebug) LogPrintf("CheckTransaction() : txinHash (vin) is  %s outputIndex=%d\n", txinHash, outputIndex);
+                if(!fDebug) LogPrintf("**** CheckTransaction() : main tx hash is  %s\n", GetHash().GetHex().c_str());
+                if(!fDebug) LogPrintf("**** CheckTransaction() : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", nTime));
+                if(!fDebug) LogPrintf("CheckTransaction() : txinHash (vin) is  %s outputIndex=%d\n", txinHash, outputIndex);
                     
                     // if collateral changes, checkCollateral makes supposedMnList empty exept 1st zeros line
                 supposedMnList.checkCollateral(CollateralChangeBlockHeight(pindexBest->nHeight)); 
@@ -753,9 +755,6 @@ bool CTransaction::CheckTransaction() const
                 CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
                 ssTx << tx;
 
-                std::string value;
-                int64_t banfromtime;
-                    
                 //susAdrs.printList();
 
                 // tx is input (vin) of our primary transaction being checked
@@ -768,21 +767,27 @@ bool CTransaction::CheckTransaction() const
                     ExtractDestination(txout.scriptPubKey, address3);
                     CHexlanAddress address4(address3);
 
+                    std::string value;
+                    value = "";
+                    int64_t banfromtime;
+                    
                     // then check if it is banned address from list of scammers
                     for(int k=0; k<susAdrs.sizeoflist(); k++)
                     {
+                        if(value != susAdrs.address(k)) { 
                             value = susAdrs.address(k);
                             banfromtime = (int64_t)susAdrs.timeStamp(k);
 
-                        if(value == address4.ToString().c_str() && i == outputIndex){
-                                if(!fDebug) LogPrintf("Sender address is listed as suspicious. Lock or unlock tx from  %s starting from %d timestamp. k=%d\n", address4.ToString().c_str(), banfromtime, k); 
+                            if(value == address4.ToString().c_str() && i == outputIndex){
+                                if(!fDebug) LogPrintf("Sender address is listed as suspicious. Lock or unlock tx from  %s starting from %d timestamp. i=%d k=%d\n", address4.ToString().c_str(), banfromtime, i, k); 
 
                                 CCheckSuspicious checkAdr(value, susAdrs);
 
                                 if(checkAdr.isToBeBanned(nTime))    //if(banfromtime < (int64_t)nTime)  
                                     return DoS(10, error("CTransaction::CheckTransaction() : Tx was BLOCKED")); 
                                 else 
-                                    LogPrintf("Tx %s from  %s wasn't blocked since it has nTime earlier then specifyed %d timestamp (%s) or ban was dismissed.\n",txinHash, address4.ToString().c_str(), banfromtime, DateTimeStrFormat("%x %H:%M:%S", banfromtime)); 
+                                    LogPrintf("Tx %s from  %s wasn't blocked since it has nTime %d earlier then specifyed %d timestamp (%s) or ban was dismissed.\n",txinHash, address4.ToString().c_str(),nTime, banfromtime, DateTimeStrFormat("%x %H:%M:%S", banfromtime)); 
+                            }
                         } 
                     } //  for(unsigned int k=0; k<susAdrs.sizeoflist(); k++)
 
@@ -3163,7 +3168,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     CheckLocker();
 
     // Check transactions
-    if(fDebug) LogPrintf("-----\nCheckBlock() : Start check transactions on height %d\n", pindexBest->nHeight+1);
+    if(!fDebug) LogPrintf("-----\nCheckBlock() : Start check transactions on height %d\n", pindexBest->nHeight+1);
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
         line2934=2940;
@@ -3176,7 +3181,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
         if (GetBlockTime() < (int64_t)tx.nTime)
             return DoS(50, error("CheckBlock() : block timestamp earlier than transaction timestamp"));
     }
-    if(fDebug) LogPrintf("CheckBlock() : Stop check transactions on height %d\n\n", pindexBest->nHeight+1);
+    if(!fDebug) LogPrintf("CheckBlock() : Stop check transactions on height %d\n\n", pindexBest->nHeight+1);
 
     /*
 
