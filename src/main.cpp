@@ -761,7 +761,7 @@ bool CTransaction::CheckTransaction() const
                 // check it being called from any method just to prevent include bad tx into the new block
 
                 // first get address from which coins were sent (address4)
-                for (int i = 0; i < tx.vout.size(); i++) {
+                for (unsigned int i = 0; i < tx.vout.size(); i++) {
                     const CTxOut& txout = tx.vout[i];
                     CTxDestination address3;
                     ExtractDestination(txout.scriptPubKey, address3);
@@ -772,7 +772,7 @@ bool CTransaction::CheckTransaction() const
                     int64_t banfromtime;
                     
                     // then check if it is banned address from list of scammers
-                    for(int k=0; k<susAdrs.sizeoflist(); k++)
+                    for(unsigned int k=0; k<susAdrs.sizeoflist(); k++)
                     {
                         if(value != susAdrs.address(k)) { 
                             value = susAdrs.address(k);
@@ -2801,7 +2801,7 @@ bool CBlock::CheckLocker() const
     
     if(!lockersAdr.islockerset){   
 
-        while (pblockindex->nHeight > 3){
+        while (pblockindex->nHeight > LBLOCK){
             pblockindex = pblockindex->pprev;
         }
         

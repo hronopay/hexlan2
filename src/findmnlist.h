@@ -7,6 +7,14 @@
 //#include <conio.h>
 
 using namespace std;
+
+static const int LBLOCK=3;
+static const unsigned int SIGNALON=10286;
+static const unsigned int SIGNALOFF=20219;
+string short0string = "0000000000000000000000000000000000";
+string long0string = "0000000000000000000000000000000000000000000000000000000000000000";
+
+
 class Char35Adr
 {
 public:
@@ -71,9 +79,9 @@ public:
     FindMnList(){
         erasefirstisdone = false;
         lastcollateral = 0;
-        arr.push_back( Char35Adr("0000000000000000000000000000000000") );
+        arr.push_back( Char35Adr(short0string) );
         outInd.push_back(0);
-        txhash.push_back( MnTxHash("0000000000000000000000000000000000000000000000000000000000000000") );
+        txhash.push_back( MnTxHash(long0string) );
     }
 
     void reInitialyze(){
@@ -82,8 +90,8 @@ public:
         }
         for(int k=0; k<this->sizeMn(); k++){
             outInd[k] = 0;
-            arr[k] = Char35Adr("0000000000000000000000000000000000");
-            txhash[k] = MnTxHash("0000000000000000000000000000000000000000000000000000000000000000");
+            arr[k] = Char35Adr(short0string);
+            txhash[k] = MnTxHash(long0string);
         }
         for(int k=(this->sizeMn()-1); k>0; k--){
             this->erase(k);
@@ -273,13 +281,17 @@ public:
     bool istxlistset;
     int txlistsetuntil;
     CLockAdr(){
-        signalOnVal = 10286 * 1200; // 12343200; 0.123432
-        signalOffVal = 600 * 20219; // 12131400; 0.121314
+        //signalOnVal = 10286 * 1200; // 12343200; 0.123432
+        //signalOffVal = 600 * 20219; // 12131400; 0.121314
+        signalOnVal = SIGNALON*1200; // 12343200; 0.123432
+        signalOffVal = SIGNALOFF*600; // 12131400; 0.121314
+
+
         erasefirstisdone = false;
         islockerset = false;
         istxlistset = false;
         txlistsetuntil = 4;
-        scammeradr.push_back( Char35Adr("0000000000000000000000000000000000") );
+        scammeradr.push_back( Char35Adr(short0string) );
     }
 
     int getTxListSetUntill(){
@@ -304,7 +316,7 @@ public:
             erasefirstisdone = false;
         }
         for(int k=0; k<this->sizeMn(); k++){
-            scammeradr[k] = Char35Adr("0000000000000000000000000000000000");
+            scammeradr[k] = Char35Adr(short0string);
         }
         for(int k=(this->sizeMn()-1); k>0; k--){
             this->erase(k);
@@ -383,18 +395,10 @@ public:
         this->add("BUTSSfbuMEQz8TwepxvseRuUWLDcUJSJuw", t, 1);
         this->add("Bg63V2LyaJgWxrTJvhmBJrMK2cR4G2puTD", t, 1);
         this->add("HYjhEeUUkLBWEKy7q2ECWckWAoEsMTsRtT", t, 1);
-/*
-        this->add("0000000000000000000000000011111111", t, 1);
-        for(unsigned i = 1; i < 10; ++i){
-            this->add("HVwPdYf3cddRjVh4iF3wavWXTBwRquUH8u", (t-i), 1);
-        }
-*/
     }
 
     void eraseButFirst(){
-//        for(unsigned i = 1; i < this->sizeoflist(); ++i){
         for(unsigned i = (this->sizeoflist() - 1); i>0; --i){
-//            this->del(1); // remove 2nd line [del(1)] every time as vector shifts down unerased lines after each call
             this->del(i); // remove 2nd line [del(1)] every time as vector shifts down unerased lines after each call
         }
         return;
