@@ -670,7 +670,7 @@ class CScAddr
 bool CTransaction::CheckTransaction() const
 {
     // if(line2934!=2940 && fDebug) 
-    int LockDebug = GetArg("-ldebug", 0); 
+//    int LockDebug = GetArg("-ldebug", 0); 
 
     if(LockDebug) LogPrintf("||CheckTransaction() : started -- line2934 = %d || \n", line2934);
 

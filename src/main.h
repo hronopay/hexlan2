@@ -91,6 +91,9 @@ inline int CollateralChangeBlockHeight(int nHeight) {
     else return 94199;
 }
 
+int LockDebug = GetArg("-ldebug", 0); 
+
+
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;
