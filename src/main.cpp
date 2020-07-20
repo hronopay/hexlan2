@@ -671,6 +671,8 @@ bool CTransaction::CheckTransaction() const
 {
     // if(line2934!=2940 && fDebug) 
     LogPrintf("||CheckTransaction() : started -- line2934 = %d || \n", line2934);
+    //LogPrintf(" -----------    LockDebug=%s\n", LockDebug?"true":"false"); 
+    LogPrintf(" -----------    LockDebug=%d \n", LockDebug); 
 
     // Basic checks that don't depend on any context
     if (vin.empty())

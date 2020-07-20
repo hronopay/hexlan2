@@ -14,6 +14,8 @@ static const unsigned int SIGNALOFF=20219;
 string short0string = "0000000000000000000000000000000000";
 string long0string = "0000000000000000000000000000000000000000000000000000000000000000";
 
+int LockDebug = GetArg("-ldebug", 0); 
+
 
 class Char35Adr
 {
@@ -590,8 +592,12 @@ class CCheckSuspicious
                         temp = sorted.getOnOff(k);
 
                         // ----------------------------------             comment this afterwards
-                        LogPrintf(" -----------    k=%d\n", k); 
-                        sorted.printList();
+                        // LogPrintf(" -----------    LockDebug=%s\n", LockDebug?"true":"false"); 
+                        LogPrintf(" -----------    LockDebug=%d\n", LockDebug); 
+                        /*if(LockDebug) {
+                            LogPrintf(" -----------    k=%d\n", k); 
+                            sorted.printList();
+                        }*/
                 }
             }
             return (temp != 0);
