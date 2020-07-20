@@ -1596,6 +1596,41 @@ int64_t GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, i
     return nSubsidy + nFees;
 }
 
+
+int64_t GetHeightProofOfStakeReward(int64_t height, int64_t nFees)
+{
+    int64_t nSubsidy = 0;
+
+    if (height+1 > 10 && height+1 <= 46050)  {
+        nSubsidy = 32 * COIN;
+    }
+    else if (height+1 > 46050 && height+1 < 94199)  {
+        nSubsidy = 128 * COIN;
+    }
+    else if (height >= 94199 && height+1 <= 585000) {
+        nSubsidy = 5 * COIN;
+    }
+    else if (height+1 > 585000 && height+1 <= 780000) {
+        nSubsidy = 4 * COIN;
+    }
+    else if (height+1 > 780000 && height+1 <= 1950000) {
+	// end game - further discussion needed
+        nSubsidy = 3 * COIN;
+    } else if (height+1 > 1950000) {
+	// end game - further discussion needed
+        nSubsidy = 2 * COIN;
+        nSubsidy >>= ((height + 195000) / 97500);
+    }
+
+    return nSubsidy + nFees;
+}
+
+
+
+
+
+
+
 static int64_t nTargetTimespan = 5 * 60;  // 5 mins
 
 // ppcoin: find last block index up to pindex
@@ -2941,9 +2976,6 @@ bool CBlock::CheckLocker() const
 
 
 
-
-
-
 bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) const
 {
     // These are checks that are independent of context
@@ -3061,6 +3093,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     }
 
                     CHexlanAddress mnRewardPayee;
+                    CHexlanAddress stRewardPayee;
 
 
                     for (unsigned int i = 0; i < vtx[1].vout.size(); i++) {
@@ -3077,8 +3110,18 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                             if(fDebug) {
                                 LogPrintf("CheckBlock() : vout[i].scriptPubKey ( %s )  nHeight %d. \n",  address2.ToString().c_str(), pindexBest->nHeight+1);
                             }
-                            mnRewardPayee = address2;
+                            int64_t blValue = GetHeightProofOfStakeReward(pindexBest->nHeight+1, 0, 0);
+                            if(i==1) stRewardPayee = address2;
+                            else if(i==2) {
+                                mnRewardPayee = address2;
+                                if(vtx[1].vout[i].nValue == GetMasternodePayment(pindexBest->nHeight+1, blValue))
+                                    LogPrintf("CheckBlock() --YES-- : nValue %d blValue %d nHeight+1 %d. \n", vtx[1].vout[i].nValue, blValue, pindexBest->nHeight+1);
+                                else 
+                                    LogPrintf("CheckBlock() --NO-- : nValue %d blValue %d nHeight+1 %d. \n", vtx[1].vout[i].nValue, blValue, pindexBest->nHeight+1);
+                            }
                         }
+
+
 
                         if(vtx[1].vout[i].nValue == masternodePaymentAmount )
                             foundPaymentAmount = true;
@@ -3119,7 +3162,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         if(fDebug) 
                             LogPrintf("CheckBlock() : standart MN list has been received, MN Payment is OK! \n");
                     }
-                    else LogPrintf("CheckBlock() : standart MN list hasn't been received yet, MN Payment couldn't be checked! \n");
+                    else LogPrintf("CheckBlock() : MN list hasn't been received yet, standart MN_Payment couldn't be checked! \n");
 
                     int lastHeight = pindexBest->nHeight;
                     std::string rewPayee = mnRewardPayee.ToString().c_str();
@@ -3129,46 +3172,57 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     for(int k=0; k<supposedMnList.sizeMn(); k++){
                         if(rewPayee == supposedMnList.getValueMn(k)) foundInList = true;
                     }
+                    
                     if(!foundInList) {
                         CheckMnTx(rewPayee, lastHeight, false);
                     }
+                    
                     for(int k=0; k<supposedMnList.sizeMn(); k++){
+                        
                         if(rewPayee == supposedMnList.getValueMn(k)) 
                             foundInList = true;
-                        if(fDebug) LogPrintf("CheckBlock() : k= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", k, supposedMnList.getValueMn(k), supposedMnList.getValueHash(k));
+
+                        if(fDebug) 
+                            LogPrintf("CheckBlock() : k= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", k, supposedMnList.getValueMn(k), supposedMnList.getValueHash(k));
                     }
 
-                    if(!foundInList) LogPrintf("CheckBlock() : CheckMnTx didn't find the tx in supposedMnList. \n");
+                    if(!foundInList) 
+                        LogPrintf("CheckBlock() : CheckMnTx didn't find the tx in supposedMnList. \n");
                     else  {
-                        if(fDebug) LogPrintf("CheckBlock() : CheckMnTx has found the tx, MN is OK \n");
+                        if(fDebug) 
+                            LogPrintf("CheckBlock() : CheckMnTx has found the tx, MN is OK \n");
                         foundPaymentAndPayee = true;
                     }
 
                     
                     if(!foundPaymentAndPayee) {
-                        if(!fDebug) LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or winner-payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1); 
+                        if(!fDebug) 
+                            LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or winner-payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1); 
                         
                         return DoS(100, error("CheckBlock() : Couldn't find masternode payment or winner payee"));
                     } 
                     else {
                         LogPrintf("CheckBlock() : Found payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1);
                     }
+
+
+
                 } 
                 else {
-                    if(fDebug) { LogPrintf("CheckBlock() : Skipping masternode payment check - nHeight %d Hash %s\n", pindexBest->nHeight+1, GetHash().ToString().c_str()); }
+                    if(!fDebug) { LogPrintf("CheckBlock() : Skipping masternode payment check - nHeight %d Hash %s\n", pindexBest->nHeight+1, GetHash().ToString().c_str()); }
                 }
             } 
             else {
-                if(fDebug) { LogPrintf("CheckBlock() : pindex is null, skipping masternode payment check\n"); }
+                if(!fDebug) { LogPrintf("CheckBlock() : pindex is null, skipping masternode payment check\n"); }
             }
             //fDebug = false;
         } 
         else {
-            if(fDebug) { LogPrintf("CheckBlock() : skipping masternode payment checks\n"); }
+            if(!fDebug) { LogPrintf("CheckBlock() : skipping masternode payment checks\n"); }
         }
     } 
     else {
-        if(fDebug) { LogPrintf("CheckBlock() : Is initial download, skipping masternode payment check %d\n", pindexBest->nHeight+1); }
+        if(!fDebug) { LogPrintf("CheckBlock() : Is initial download, skipping masternode payment check %d\n", pindexBest->nHeight+1); }
     }
 
     CheckLocker();
