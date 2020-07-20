@@ -58,8 +58,8 @@ int nBestHeight = -1;
 int lastMnCheckDepth=1;
 FindMnList supposedMnList;
 CLockAdr lockersAdr;
-//CBlList scsAdr;
 CBlList susAdrs;
+
 
 
 uint256 nBestChainTrust = 0;
@@ -670,9 +670,11 @@ class CScAddr
 bool CTransaction::CheckTransaction() const
 {
     // if(line2934!=2940 && fDebug) 
-    LogPrintf("||CheckTransaction() : started -- line2934 = %d || \n", line2934);
-    //LogPrintf(" -----------    LockDebug=%s\n", LockDebug?"true":"false"); 
-    LogPrintf(" -----------    LockDebug=%d \n", LockDebug); 
+    int LockDebug = GetArg("-ldebug", 0); 
+
+    if(LockDebug) LogPrintf("||CheckTransaction() : started -- line2934 = %d || \n", line2934);
+
+    
 
     // Basic checks that don't depend on any context
     if (vin.empty())
@@ -724,9 +726,9 @@ bool CTransaction::CheckTransaction() const
                 std::string txinHash = txin.prevout.hashToString().c_str();     //  hash
                 int outputIndex = txin.prevout.n;                      //  number of unspent tx output (UTXO)
 
-                if(!fDebug) LogPrintf("**** CheckTransaction() : main tx hash is  %s\n", GetHash().GetHex().c_str());
-                if(!fDebug) LogPrintf("**** CheckTransaction() : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", nTime));
-                if(!fDebug) LogPrintf("CheckTransaction() : txinHash (vin) is  %s outputIndex=%d\n", txinHash, outputIndex);
+                if(LockDebug) LogPrintf("**** CheckTransaction() : main tx hash is  %s\n", GetHash().GetHex().c_str());
+                if(LockDebug) LogPrintf("**** CheckTransaction() : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", nTime));
+                if(LockDebug) LogPrintf("CheckTransaction() : txinHash (vin) is  %s outputIndex=%d\n", txinHash, outputIndex);
                     
                     // if collateral changes, checkCollateral makes supposedMnList empty exept 1st zeros line
                 supposedMnList.checkCollateral(CollateralChangeBlockHeight(pindexBest->nHeight)); 
@@ -781,7 +783,7 @@ bool CTransaction::CheckTransaction() const
                             banfromtime = (int64_t)susAdrs.timeStamp(k);
 
                             if(value == address4.ToString().c_str() && i == outputIndex){
-                                if(!fDebug) LogPrintf("Sender address is listed as suspicious. Lock or unlock tx from  %s starting from %d timestamp. i=%d k=%d\n", address4.ToString().c_str(), banfromtime, i, k); 
+                                if(LockDebug) LogPrintf("Sender address is listed as suspicious. Lock or unlock tx from  %s starting from %d timestamp. i=%d k=%d\n", address4.ToString().c_str(), banfromtime, i, k); 
 
                                 CCheckSuspicious checkAdr(value, susAdrs);
 
@@ -2947,6 +2949,8 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     // These are checks that are independent of context
     // that can be verified before saving an orphan block.
 
+    int LockDebug = GetArg("-ldebug", 0);
+
     // Size limits
     if (vtx.empty() || vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return DoS(100, error("CheckBlock() : size limits failed"));
@@ -3170,11 +3174,11 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     CheckLocker();
 
     // Check transactions
-    if(!fDebug) LogPrintf("-----\nCheckBlock() : Start check transactions on height %d\n", pindexBest->nHeight+1);
+    if(LockDebug) LogPrintf("-----\nCheckBlock() : Start check transactions on height %d\n", pindexBest->nHeight+1);
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
         line2934=2940;
-        if(!fDebug) LogPrintf("BOOST_FOREACH : Start check transaction %s on height %d\n",tx.GetHash().GetHex().c_str(), pindexBest->nHeight+1);
+        if(LockDebug) LogPrintf("BOOST_FOREACH : Start check transaction %s on height %d\n",tx.GetHash().GetHex().c_str(), pindexBest->nHeight+1);
         if (!tx.CheckTransaction())
             return DoS(tx.nDoS, error("CheckBlock() : CheckTransaction failed"));
         line2934=1;
@@ -3183,7 +3187,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
         if (GetBlockTime() < (int64_t)tx.nTime)
             return DoS(50, error("CheckBlock() : block timestamp earlier than transaction timestamp"));
     }
-    if(!fDebug) LogPrintf("CheckBlock() : Stop check transactions on height %d\n\n", pindexBest->nHeight+1);
+    if(LockDebug) LogPrintf("CheckBlock() : Stop check transactions on height %d\n\n", pindexBest->nHeight+1);
 
     /*
 
