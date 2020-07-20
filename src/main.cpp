@@ -670,7 +670,7 @@ class CScAddr
 bool CTransaction::CheckTransaction() const
 {
     // if(line2934!=2940 && fDebug) 
-//    int LockDebug = GetArg("-ldebug", 0); 
+    int LockDebug = GetArg("-ldebug", 0); 
 
     if(LockDebug) LogPrintf("||CheckTransaction() : started -- line2934 = %d || \n", line2934);
 
@@ -3110,7 +3110,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                             if(fDebug) {
                                 LogPrintf("CheckBlock() : vout[i].scriptPubKey ( %s )  nHeight %d. \n",  address2.ToString().c_str(), pindexBest->nHeight+1);
                             }
-                            int64_t blValue = GetHeightProofOfStakeReward(pindexBest->nHeight+1, 0, 0);
+                            int64_t blValue = GetHeightProofOfStakeReward(pindexBest->nHeight+1, 0);
                             if(i==1) stRewardPayee = address2;
                             else if(i==2) {
                                 mnRewardPayee = address2;
