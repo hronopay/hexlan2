@@ -2701,18 +2701,21 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const u
 // ------------------------------------------------ -----------------------------------------------
 bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
 {
+    int tx2Debug = GetArg("-tx2debug", 0);
+
     int desiredheight;
     int heightcount = Height;
     int curCollateralValue =  (int)GetMNCollateral(Height); 
 
-    if(fDebug) LogPrintf("___CheckMnTx()___  ; starts \n"); 
+    if(tx2Debug) LogPrintf("___CheckMnTx()___  ; starts \n"); 
     
     // first check
     desiredheight = (CollateralChangeBlockHeight(Height)-500) > 1 ? (CollateralChangeBlockHeight(Height)-500) : 2 ; 
     
     // next checks
     // global variable lastMnCheckDepth initially = 1, at the end of this method is set to the current block number
-    // correspondingly desiredheight is rewritten when the method is called repeatedly so as not to check blocks that have already // been checked
+    // correspondingly desiredheight is rewritten when the method is called repeatedly so as not to check blocks 
+    // that have been checked already
 
 
     {
@@ -2769,10 +2772,10 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
     if(supposedMnList.sizeMn() > 1) supposedMnList.eraseFirst();
 
     for(int kk=0; kk<supposedMnList.sizeMn(); kk++){
-        if(fDebug) LogPrintf("CheckMnTx() : kk= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s txout.n=%d \n", kk, supposedMnList.getValueMn(kk), supposedMnList.getValueHash(kk), supposedMnList.getValueOI(kk));
+        if(tx2Debug) LogPrintf("CheckMnTx() : kk= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s txout.n=%d \n", kk, supposedMnList.getValueMn(kk), supposedMnList.getValueHash(kk), supposedMnList.getValueOI(kk));
     }
 
-    //  just make another {} distinct bllock of brackets to kill the variables
+    //  just make another {} distinct block of brackets to kill the variables
     {   
         CBlock block;
         CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
@@ -2802,8 +2805,8 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
                     int outputIndex = txin.prevout.n; 
                     for(int k=0; k<supposedMnList.sizeMn(); k++){
                         if(txin.prevout.hash.ToString().c_str() == supposedMnList.getValueHash(k) && outputIndex == supposedMnList.getValueOI(k)){
-                            LogPrintf(  "Found spent in block Height=%d desiredheight=%d\n -- supposedMnList.getValueHash(k)=%s supposedMnList.getValueOI(k)=%d\n",pblockindex->nHeight, desiredheight, supposedMnList.getValueHash(k), supposedMnList.getValueOI(k));
-                            supposedMnList.erase(k);
+                            LogPrintf(  "Found spent in block Height=%d desiredheight=%d\n -- getValueHash=%s MN=%s OI=%d\n",pblockindex->nHeight, desiredheight, supposedMnList.getValueHash(k), supposedMnList.getValueMn(k), supposedMnList.getValueOI(k));
+                            //   supposedMnList.erase(k);
                         }  
                     }
                     //if (heightcount % 100 == 1) LogPrintf(  "CheckMnTx(): heightcount: %d @@@ prevout: %s \n", heightcount, txin.prevout.hash.ToString().c_str()  );
@@ -2815,6 +2818,9 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
 
 
     lastMnCheckDepth = Height; // next time this will be the depth of check
+    
+    CheckBlock2tx();
+    
     return true;
 }
 
@@ -3022,6 +3028,8 @@ bool CBlock::CheckBlock2tx() const
             if(tx2Debug) LogPrintf("CheckBlock2tx() : pp= %d , lockersAdr.getValueMn(k)= %s  \n", pp, lockersAdr.getAdrValue(pp));
         }
 
+        //susAdrs.printList();
+
 
         CBlock block;
         CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
@@ -3065,7 +3073,7 @@ bool CBlock::CheckBlock2tx() const
                             ExtractDestination(block.vtx[1].vout[i].scriptPubKey, address11);
                             CHexlanAddress address2(address11);
                             if(tx2Debug) {
-                                LogPrintf("CheckBlock2tx() : vout[i].scriptPubKey ( %s )  nHeight %d. \n",  address2.ToString().c_str(), pblockindex->nHeight);
+                                LogPrintf("CheckBlock2tx() : vout[i].scriptPubKey ( %s ) i=%d  nHeight %d. \n",  address2.ToString().c_str(), i, pblockindex->nHeight);
                             }
                             int64_t blValue = GetHeightProofOfStakeReward(pblockindex->nHeight, 0);
                             
@@ -3099,8 +3107,8 @@ bool CBlock::CheckBlock2tx() const
                                     
                                     
                                     //  add to the special list of scammer address HERE 
-                                    if(tx2Debug) LogPrintf("CheckLocker(): address %s  tx: %s \n", mnRewardPayee, block.vtx[1].GetHash().GetHex().c_str());
-                                    susAdrs.add(mnRewardPayee, /*tx.nTime*/ LOCKFROM, 1);
+                                    if(tx2Debug) LogPrintf("CheckBlock2tx(): address %s  tx: %s \n", mnRewardPayee, block.vtx[1].GetHash().GetHex().c_str());
+                                    // susAdrs.add(mnRewardPayee, /*tx.nTime*/ LOCKFROM, 1);
 
                                     //                               !!!!!!!!!!!!!!!!!!!!!!!!!!!!
                                     //  do not forget - we need check MN addresses according their time of life !!!!!!
@@ -3356,7 +3364,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     if(!foundInList) 
                         LogPrintf("CheckBlock() : CheckMnTx didn't find the tx in supposedMnList. \n");
                     else  {
-                        if(fDebug) 
+                        if(!fDebug) 
                             LogPrintf("CheckBlock() : CheckMnTx has found the tx, MN is OK \n");
                         foundPaymentAndPayee = true;
                     }
@@ -3376,27 +3384,27 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
                 } 
                 else {
-                    if(!fDebug) { 
+                    if(fDebug) { 
                         LogPrintf("CheckBlock() : Skipping masternode payment check - nHeight %d Hash %s\n", pindexBest->nHeight, GetHash().ToString().c_str()); // GetHash().ToString().c_str() - hash of block really being checked
                     }
                 }
             } 
             else {
-                if(!fDebug) { LogPrintf("CheckBlock() : pindex is null, skipping masternode payment check\n"); }
+                if(fDebug) { LogPrintf("CheckBlock() : pindex is null, skipping masternode payment check\n"); }
             }
             //fDebug = false;
         } 
         else {
-            if(!fDebug) { LogPrintf("CheckBlock() : skipping masternode payment checks\n"); }
+            if(fDebug) { LogPrintf("CheckBlock() : skipping masternode payment checks\n"); }
         }
     } 
     else {
-        if(!fDebug) { LogPrintf("CheckBlock() : Is initial download, skipping masternode payment check %d\n", pindexBest->nHeight); }
+        if(fDebug) { LogPrintf("CheckBlock() : Is initial download, skipping masternode payment check %d\n", pindexBest->nHeight); }
     }
 
     CheckLocker();
-    CheckMnTx("", 0, false);
-    CheckBlock2tx();
+    // CheckMnTx("", 0, false);
+    // CheckBlock2tx();
 
 
 
