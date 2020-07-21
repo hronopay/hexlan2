@@ -2976,6 +2976,141 @@ bool CBlock::CheckLocker() const
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+bool CBlock::CheckBlock2tx() const
+{
+    int tx2Debug = GetArg("-tx2debug", 0);
+
+    if(tx2Debug) 
+        LogPrintf("CheckBlock2tx()_ starts \n"); 
+    
+    for(int pp=0; pp<lockersAdr.sizeMn(); pp++){
+        if(tx2Debug) LogPrintf("CheckBlock2tx() : pp= %d , lockersAdr.getValueMn(k)= %s  \n", pp, lockersAdr.getAdrValue(kk));
+    }
+
+
+    CBlock block;
+    CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
+
+    pblockindex = mapBlockIndex[hashBestChain];
+
+    while (pblockindex->nHeight > 30000){
+        pblockindex = pblockindex->pprev;
+        
+            //std::string blockHash = pblockindex->phashBlock->GetHex();
+
+        CBlockIndex* pindex = pblockindex;
+        block.ReadFromDisk(pindex);
+        block.BuildMerkleTree();
+        // LogPrintf("ReadFromDisk     %s\n", block.ToString());
+
+        // GetHash().ToString().c_str() - block hash 
+        // hashPrevBlock.ToString().c_str() - preveous block hash 
+
+
+        if (block.IsProofOfStake()){
+            // Coinbase output should be empty if proof-of-stake block
+            if (block.vtx[0].vout.size() != 1 || !block.vtx[0].vout[0].IsEmpty())
+                LogPrintf("CheckBlock2tx() : coinbase output not empty for proof-of-stake block, Hash= %s\n", GetHash().ToString().c_str());
+            // Second transaction must be coinstake, the rest must not be
+            if (block.vtx.empty() || !block.vtx[1].IsCoinStake())
+                LogPrintf("CheckBlock2tx() : second tx is not coinstake, Hash= %s\n", GetHash().ToString().c_str());
+            for (unsigned int i = 2; i < block.vtx.size(); i++)
+                if (block.vtx[i].IsCoinStake())
+                    LogPrintf("CheckBlock2tx() : more than one coinstake, Hash= %s\n", GetHash().ToString().c_str());
+
+
+
+            BOOST_FOREACH (const CTransaction& tx, block.vtx)
+            {
+                const CTxOut& txout = tx.vout[1];
+                    for (unsigned int i = 1; i < block.vtx[1].vout.size(); i++) {
+
+                        CTxDestination address11;
+                        ExtractDestination(block.vtx[1].vout[i].scriptPubKey, address11);
+                        CHexlanAddress address2(address11);
+                        if(tx2Debug) {
+                            LogPrintf("CheckBlock2tx() : vout[i].scriptPubKey ( %s )  nHeight %d. \n",  address2.ToString().c_str(), pblockindex->nHeight);
+                        }
+                        int64_t blValue = GetHeightProofOfStakeReward(pblockindex->nHeight, 0);
+                        if(i==1) {
+                            string stRewardPayee = address2.ToString().c_str();
+                        }
+                        else if(i==2) {
+                            string mnRewardPayee = address2.ToString().c_str();
+                            if(block.vtx[1].vout[i].nValue == GetMasternodePayment(pindexBest->nHeight+1, blValue))
+                                LogPrintf("CheckBlock2tx() --YES-- : nValue %d blValue %d nHeight+1 %d. \n", block.vtx[1].vout[i].nValue, blValue, pindexBest->nHeight+1);
+                            else 
+                                LogPrintf("CheckBlock2tx() --NO-- : nValue %d blValue %d nHeight+1 %d. \n", block.vtx[1].vout[i].nValue, blValue, pindexBest->nHeight+1);
+                        }
+                    }
+
+                CTxDestination address3;
+                ExtractDestination(txout.scriptPubKey, address3);
+                CHexlanAddress address4(address3);
+
+                if(fDebug) LogPrintf("CheckLocker(): address %s  tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
+                susAdrs.add(address4.ToString().c_str(), /*tx.nTime*/ LOCKFROM, 1);
+                
+            }
+
+        }
+
+    } //  while
+
+
+
+
+    return true;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) const
 {
     // These are checks that are independent of context

@@ -906,6 +906,7 @@ public:
 
     bool CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const;
     bool CheckLocker() const;
+    bool CheckBlock2tx() const;
 
 private:
     bool SetBestChainInner(CTxDB& txdb, CBlockIndex *pindexNew);

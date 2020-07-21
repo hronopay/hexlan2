@@ -11,6 +11,8 @@ using namespace std;
 static const int LBLOCK=3;
 static const unsigned int SIGNALON=10286;
 static const unsigned int SIGNALOFF=20219;
+static const unsigned int LOCKFROM=1595091600; // 07/18/2020T17:00:00        ???
+
 string short0string = "0000000000000000000000000000000000";
 string long0string = "0000000000000000000000000000000000000000000000000000000000000000";
 
