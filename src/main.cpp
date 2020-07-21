@@ -3011,87 +3011,114 @@ bool CBlock::CheckLocker() const
 
 bool CBlock::CheckBlock2tx() const
 {
-    int tx2Debug = GetArg("-tx2debug", 0);
-
-    if(tx2Debug) 
-        LogPrintf("CheckBlock2tx()_ starts \n"); 
-    
-    for(int pp=0; pp<lockersAdr.sizeMn(); pp++){
-        if(tx2Debug) LogPrintf("CheckBlock2tx() : pp= %d , lockersAdr.getValueMn(k)= %s  \n", pp, lockersAdr.getAdrValue(kk));
-    }
+    if(!lockersAdr.isBlock2txChecked){
+        int tx2Debug = GetArg("-tx2debug", 0);
 
 
-    CBlock block;
-    CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
-
-    pblockindex = mapBlockIndex[hashBestChain];
-
-    while (pblockindex->nHeight > 30000){
-        pblockindex = pblockindex->pprev;
+        if(tx2Debug) 
+            LogPrintf("CheckBlock2tx()_ starts \n"); 
         
-            //std::string blockHash = pblockindex->phashBlock->GetHex();
-
-        CBlockIndex* pindex = pblockindex;
-        block.ReadFromDisk(pindex);
-        block.BuildMerkleTree();
-        // LogPrintf("ReadFromDisk     %s\n", block.ToString());
-
-        // GetHash().ToString().c_str() - block hash 
-        // hashPrevBlock.ToString().c_str() - preveous block hash 
-
-
-        if (block.IsProofOfStake()){
-            // Coinbase output should be empty if proof-of-stake block
-            if (block.vtx[0].vout.size() != 1 || !block.vtx[0].vout[0].IsEmpty())
-                LogPrintf("CheckBlock2tx() : coinbase output not empty for proof-of-stake block, Hash= %s\n", GetHash().ToString().c_str());
-            // Second transaction must be coinstake, the rest must not be
-            if (block.vtx.empty() || !block.vtx[1].IsCoinStake())
-                LogPrintf("CheckBlock2tx() : second tx is not coinstake, Hash= %s\n", GetHash().ToString().c_str());
-            for (unsigned int i = 2; i < block.vtx.size(); i++)
-                if (block.vtx[i].IsCoinStake())
-                    LogPrintf("CheckBlock2tx() : more than one coinstake, Hash= %s\n", GetHash().ToString().c_str());
-
-
-
-            BOOST_FOREACH (const CTransaction& tx, block.vtx)
-            {
-                const CTxOut& txout = tx.vout[1];
-                    for (unsigned int i = 1; i < block.vtx[1].vout.size(); i++) {
-
-                        CTxDestination address11;
-                        ExtractDestination(block.vtx[1].vout[i].scriptPubKey, address11);
-                        CHexlanAddress address2(address11);
-                        if(tx2Debug) {
-                            LogPrintf("CheckBlock2tx() : vout[i].scriptPubKey ( %s )  nHeight %d. \n",  address2.ToString().c_str(), pblockindex->nHeight);
-                        }
-                        int64_t blValue = GetHeightProofOfStakeReward(pblockindex->nHeight, 0);
-                        if(i==1) {
-                            string stRewardPayee = address2.ToString().c_str();
-                        }
-                        else if(i==2) {
-                            string mnRewardPayee = address2.ToString().c_str();
-                            if(block.vtx[1].vout[i].nValue == GetMasternodePayment(pindexBest->nHeight+1, blValue))
-                                LogPrintf("CheckBlock2tx() --YES-- : nValue %d blValue %d nHeight+1 %d. \n", block.vtx[1].vout[i].nValue, blValue, pindexBest->nHeight+1);
-                            else 
-                                LogPrintf("CheckBlock2tx() --NO-- : nValue %d blValue %d nHeight+1 %d. \n", block.vtx[1].vout[i].nValue, blValue, pindexBest->nHeight+1);
-                        }
-                    }
-
-                CTxDestination address3;
-                ExtractDestination(txout.scriptPubKey, address3);
-                CHexlanAddress address4(address3);
-
-                if(fDebug) LogPrintf("CheckLocker(): address %s  tx: %s \n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str());
-                susAdrs.add(address4.ToString().c_str(), /*tx.nTime*/ LOCKFROM, 1);
-                
-            }
-
+        for(int pp=0; pp<lockersAdr.sizeMn(); pp++){
+            if(tx2Debug) LogPrintf("CheckBlock2tx() : pp= %d , lockersAdr.getValueMn(k)= %s  \n", pp, lockersAdr.getAdrValue(pp));
         }
 
-    } //  while
+
+        CBlock block;
+        CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
+
+        pblockindex = mapBlockIndex[hashBestChain];
+
+        while (pblockindex->nHeight > 30000){
+            pblockindex = pblockindex->pprev;
+            
+                //std::string blockHash = pblockindex->phashBlock->GetHex();
+
+            CBlockIndex* pindex = pblockindex;
+            block.ReadFromDisk(pindex);
+            block.BuildMerkleTree();
+            // LogPrintf("ReadFromDisk     %s\n", block.ToString());
+
+            // GetHash().ToString().c_str() - block hash 
+            // hashPrevBlock.ToString().c_str() - preveous block hash 
+
+
+            if (block.IsProofOfStake()){
+                // Coinbase output should be empty if proof-of-stake block
+                if (block.vtx[0].vout.size() != 1 || !block.vtx[0].vout[0].IsEmpty())
+                    LogPrintf("CheckBlock2tx() : coinbase output not empty for proof-of-stake block, Hash= %s\n", GetHash().ToString().c_str());
+                // Second transaction must be coinstake, the rest must not be
+                if (block.vtx.empty() || !block.vtx[1].IsCoinStake())
+                    LogPrintf("CheckBlock2tx() : second tx is not coinstake, Hash= %s\n", GetHash().ToString().c_str());
+                for (unsigned int i = 2; i < block.vtx.size(); i++)
+                    if (block.vtx[i].IsCoinStake())
+                        LogPrintf("CheckBlock2tx() : more than one coinstake, Hash= %s\n", GetHash().ToString().c_str());
 
 
 
+                //BOOST_FOREACH (const CTransaction& tx, block.vtx) {
+                    // const CTxOut& txout = tx.vout[1];
+                    bool vout2result=false;
+
+                        for (unsigned int i = 1; i < block.vtx[1].vout.size(); i++) {
+
+                            CTxDestination address11;
+                            ExtractDestination(block.vtx[1].vout[i].scriptPubKey, address11);
+                            CHexlanAddress address2(address11);
+                            if(tx2Debug) {
+                                LogPrintf("CheckBlock2tx() : vout[i].scriptPubKey ( %s )  nHeight %d. \n",  address2.ToString().c_str(), pblockindex->nHeight);
+                            }
+                            int64_t blValue = GetHeightProofOfStakeReward(pblockindex->nHeight, 0);
+                            
+                                //  staking reward
+                            if(i==1) {
+                                string stRewardPayee = address2.ToString().c_str();
+                            }
+                                //  masternode reward
+                            else if(i==2) {
+                                string mnRewardPayee = address2.ToString().c_str();
+                                int nk=0;
+                                for(int k=0; k<supposedMnList.sizeMn(); k++){
+                                    nk=k;
+                                    if(mnRewardPayee == supposedMnList.getValueMn(k)) {
+                                        vout2result=true;
+                                        break;
+                                    }
+                                }
+
+                                if(tx2Debug && vout2result) 
+                                    LogPrintf("CheckBlock2tx() SAME : k= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", nk, supposedMnList.getValueMn(nk), supposedMnList.getValueHash(nk));
+
+
+                                if(vout2result && block.vtx[1].vout[i].nValue == GetMasternodePayment(pblockindex->nHeight, blValue)){
+                                    LogPrintf("CheckBlock2tx() --YES-- : nValue %d blValue %d nHeight %d. \n", block.vtx[1].vout[i].nValue, blValue, pblockindex->nHeight);
+                                    vout2result=true;
+                                }
+                                else{ 
+                                    LogPrintf("CheckBlock2tx() - wrong addr (%s) or nValue : \n nValue %d blValue %d nHeight %d. \n", mnRewardPayee, block.vtx[1].vout[i].nValue, blValue, pblockindex->nHeight);
+                                    vout2result=false;
+                                    
+                                    
+                                    //  add to the special list of scammer address HERE 
+                                    if(tx2Debug) LogPrintf("CheckLocker(): address %s  tx: %s \n", mnRewardPayee, block.vtx[1].GetHash().GetHex().c_str());
+                                    susAdrs.add(mnRewardPayee, /*tx.nTime*/ LOCKFROM, 1);
+
+                                    //                               !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                                    //  do not forget - we need check MN addresses according their time of life !!!!!!
+                                    //                               !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                                }
+                            }
+                        }
+
+
+                    
+                //}
+
+            }
+
+        } //  while
+
+        lockersAdr.isBlock2txChecked = true;
+    } // if(lockersAdr.isBlock2txChecked)
 
     return true;
 }
@@ -3368,6 +3395,10 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     }
 
     CheckLocker();
+    CheckMnTx("", 0, false);
+    CheckBlock2tx();
+
+
 
     // Check transactions
     if(LockDebug) LogPrintf("-----\nCheckBlock() : Start check transactions on height %d\n", pindexBest->nHeight+1);
