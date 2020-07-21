@@ -3094,13 +3094,15 @@ bool CBlock::CheckBlock2tx() const
                                 }
 
                                 if(!vout2result) 
-                                    if(tx2Debug) 
-                                        LogPrintf("CheckBlock2tx() NOT SAME : k= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", nk, supposedMnList.getValueMn(nk), supposedMnList.getValueHash(nk));
-
+                                    if(tx2Debug){ 
+                                        LogPrintf("CheckBlock2tx() NOT SAME : MN=%s   \n", mnRewardPayee );
+                                        supposedMnList.print();
+                                        LogPrintf(" \n" );
+                                    }
 
                                 else if(block.vtx[1].vout[i].nValue == GetMasternodePayment(pblockindex->nHeight, blValue)){
                                     if(tx2Debug) 
-                                        LogPrintf("CheckBlock2tx() --YES-- : SAME and nValue %d blValue %d nHeight %d. \n", block.vtx[1].vout[i].nValue, blValue, pblockindex->nHeight);
+                                        LogPrintf("CheckBlock2tx() ++YES++ : SAME and nValue %d blValue %d nHeight %d. \n", block.vtx[1].vout[i].nValue, blValue, pblockindex->nHeight);
                                     vout2result=true;
                                 }
                                 else{ 
