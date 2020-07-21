@@ -3057,10 +3057,10 @@ bool CBlock::CheckBlock2tx() const
                 // Second transaction must be coinstake, the rest must not be
                 if (block.vtx.empty() || !block.vtx[1].IsCoinStake())
                     LogPrintf("CheckBlock2tx() : second tx is not coinstake, Hash= %s\n", GetHash().ToString().c_str());
-                for (unsigned int i = 2; i < block.vtx.size(); i++)
+                for (unsigned int i = 2; i < block.vtx.size(); i++) {
                     if (block.vtx[i].IsCoinStake())
                         LogPrintf("CheckBlock2tx() : more than one coinstake, Hash= %s\n", GetHash().ToString().c_str());
-
+                }
 
 
                 //BOOST_FOREACH (const CTransaction& tx, block.vtx) {
@@ -3073,7 +3073,7 @@ bool CBlock::CheckBlock2tx() const
                             ExtractDestination(block.vtx[1].vout[i].scriptPubKey, address11);
                             CHexlanAddress address2(address11);
                             if(tx2Debug) {
-                                LogPrintf("\n +++ CheckBlock2tx() : vout[%d].scriptPubKey ( %s ) tx: %s   nHeight %d. \n",i,  address2.ToString().c_str(), block.vtx[1].GetHash().GetHex().c_str(), pblockindex->nHeight);
+                                //LogPrintf("\n +++ CheckBlock2tx() : vout[%d].scriptPubKey ( %s ) tx: %s   nHeight %d. \n",i,  address2.ToString().c_str(), block.vtx[1].GetHash().GetHex().c_str(), pblockindex->nHeight);
                             }
                             int64_t blValue = GetHeightProofOfStakeReward(pblockindex->nHeight, 0);
                             
@@ -3083,6 +3083,9 @@ bool CBlock::CheckBlock2tx() const
                             }
                                 //  masternode reward
                             else if(i==2) {
+                                if(tx2Debug) {
+                                    LogPrintf("\n @@@ CheckBlock2tx() : vout[%d].scriptPubKey ( %s ) tx: %s   nHeight %d. \n",i,  address2.ToString().c_str(), block.vtx[1].GetHash().GetHex().c_str(), pblockindex->nHeight);
+                                }
                                 string mnRewardPayee = address2.ToString().c_str();
                                 int nk=0;
                                 for(int k=0; k<supposedMnList.sizeMn(); k++){
