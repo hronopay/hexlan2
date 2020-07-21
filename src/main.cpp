@@ -2802,7 +2802,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
                     int outputIndex = txin.prevout.n; 
                     for(int k=0; k<supposedMnList.sizeMn(); k++){
                         if(txin.prevout.hash.ToString().c_str() == supposedMnList.getValueHash(k) && outputIndex == supposedMnList.getValueOI(k)){
-                            LogPrintf(  "Found in block Height=%d desiredheight=%d\n -- supposedMnList.getValueHash(k)=%s supposedMnList.getValueOI(k)=%d\n",pblockindex->nHeight, desiredheight, supposedMnList.getValueHash(k), supposedMnList.getValueOI(k));
+                            LogPrintf(  "Found spent in block Height=%d desiredheight=%d\n -- supposedMnList.getValueHash(k)=%s supposedMnList.getValueOI(k)=%d\n",pblockindex->nHeight, desiredheight, supposedMnList.getValueHash(k), supposedMnList.getValueOI(k));
                             supposedMnList.erase(k);
                         }  
                     }
@@ -3061,7 +3061,9 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
             //fDebug = true;
             if(IsProofOfStake() && pindex != NULL){
 
-                LogPrintf("CheckBlock() : pindex->GetBlockHash()=%s -- hashPrevBlock=%s\n", pindex->GetBlockHash().ToString().c_str(), hashPrevBlock.ToString().c_str()); 
+                //LogPrintf("CheckBlock() : pindex->GetBlockHash()=%s -- hashPrevBlock=%s\n", pindex->GetBlockHash().ToString().c_str(), hashPrevBlock.ToString().c_str());
+                // GetHash().ToString().c_str() - block hash 
+                // hashPrevBlock.ToString().c_str() - preveous block hash 
 
                 if(pindex->GetBlockHash() == hashPrevBlock){
                     // If we don't already have its previous block, skip masternode payment step
@@ -3212,7 +3214,9 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
                 } 
                 else {
-                    if(!fDebug) { LogPrintf("CheckBlock() : Skipping masternode payment check - nHeight %d Hash %s\n", pindexBest->nHeight, GetHash().ToString().c_str()); }
+                    if(!fDebug) { 
+                        LogPrintf("CheckBlock() : Skipping masternode payment check - nHeight %d Hash %s\n", pindexBest->nHeight, GetHash().ToString().c_str()); // GetHash().ToString().c_str() - hash of block really being checked
+                    }
                 }
             } 
             else {
