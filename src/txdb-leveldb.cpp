@@ -461,7 +461,7 @@ bool CTxDB::LoadBlockIndex()
         // check level 1: verify block validity
         // check level 7: verify block signature too
 
-        LogPrintf("LoadBlockIndex() :  found block at %d, hash=%s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
+        // LogPrintf("LoadBlockIndex() :  found block at %d, hash=%s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
 
         if (nCheckLevel>0 && !block.CheckBlock(true, true, (nCheckLevel>6)))
         {

@@ -3089,8 +3089,8 @@ bool CBlock::CheckBlock2tx() const
                                     nk=k;
                                     if(mnRewardPayee == supposedMnList.getValueMn(k)) {
                                         vout2result=true;
-                                        LogPrintf("CheckBlock2tx() JUST the SAME : MN=%s   \n", mnRewardPayee );
-                                        break;
+                                        //LogPrintf("CheckBlock2tx() JUST the SAME : MN=%s   \n", mnRewardPayee );
+                                        //break;
                                     }
                                 }
 
