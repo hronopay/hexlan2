@@ -3143,7 +3143,17 @@ bool CBlock::CheckBlock2tx() const
 
 
 
-
+bool CBlock::getInfo1() const
+{;}
+ 
+bool CBlock::getInfo2() const
+{;}
+ 
+bool CBlock::getInfo3() const
+{;}
+ 
+bool CBlock::getInfo4() const
+{;}
 
 
 
