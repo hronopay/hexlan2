@@ -3256,8 +3256,10 @@ bool CBlock::getInfo2() const
 
         
 
-            BOOST_FOREACH (const CTransaction& bltx, block.vtx)
+            //BOOST_FOREACH (const CTransaction& bltx, block.vtx)
+            for (int w=2; w<block.vtx.size();w++)
             {
+                CTransaction& bltx = block.vtx[w];
                 for (unsigned int t = 0; t < bltx.vin.size(); t++){
                     const CTxIn& txin = bltx.vin[t];
                     int outputIndex = txin.prevout.n; 
