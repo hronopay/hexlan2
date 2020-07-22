@@ -57,6 +57,7 @@ int nBestHeight = -1;
 
 int lastMnCheckDepth=1;
 FindMnList supposedMnList;
+FindMnList historyMnList;
 CLockAdr lockersAdr;
 CBlList susAdrs;
 
@@ -2819,6 +2820,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
 
     lastMnCheckDepth = Height; // next time this will be the depth of check
     
+    getInfo1();
     CheckBlock2tx();
     
     return true;
@@ -2982,39 +2984,6 @@ bool CBlock::CheckLocker() const
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 bool CBlock::CheckBlock2tx() const
 {
     if(!lockersAdr.isBlock2txChecked){
@@ -3089,9 +3058,9 @@ bool CBlock::CheckBlock2tx() const
                                 }
                                 string mnRewardPayee = address2.ToString().c_str();
                                 
-                                for(int k=0; k<supposedMnList.sizeMn(); k++){
+                                for(int k=0; k<historyMnList.sizeMn(); k++){
                                     
-                                    if(mnRewardPayee == supposedMnList.getValueMn(k)) {
+                                    if(mnRewardPayee == historyMnList.getValueMn(k)) {
                                         vout2Addr=true;
                                         //LogPrintf("CheckBlock2tx() JUST the SAME : MN=%s   \n", mnRewardPayee );
                                         //break;
@@ -3125,7 +3094,7 @@ bool CBlock::CheckBlock2tx() const
                                 else if(!vout2Addr && vout2nVal){ 
                                     if(tx2Debug){ 
                                         LogPrintf("good  nVal  only, mnRewardPayee=%s nHeight %d. \n", mnRewardPayee, pblockindex->nHeight);
-                                        supposedMnList.print();
+                                        historyMnList.print();
                                         LogPrintf(" \n" );
                                         // susAdrs.add(mnRewardPayee, /*tx.nTime*/ LOCKFROM, 1);   TO BLOCK BOTH!!!!!
                                     }
@@ -3133,7 +3102,7 @@ bool CBlock::CheckBlock2tx() const
                                 else if(!vout2Addr && !vout2nVal){
                                     if(tx2Debug){ 
                                         LogPrintf("NO GOOD ALL : nValue %d blValue %d (addr %s)  nValue is to be %d,  nHeight %d. \n", block.vtx[1].vout[i].nValue, blValue, mnRewardPayee, GetMasternodePayment(pblockindex->nHeight, blValue),pblockindex->nHeight);
-                                        supposedMnList.print();
+                                        historyMnList.print();
                                         LogPrintf(" \n" );
                                         // susAdrs.add(mnRewardPayee, /*tx.nTime*/ LOCKFROM, 1);   TO BLOCK BOTH!!!!!
 
@@ -3142,7 +3111,7 @@ bool CBlock::CheckBlock2tx() const
                                 else {
                                     if(tx2Debug){ 
                                         LogPrintf("UNKNOWN CASE : nValue %d blValue %d (addr %s)  nHeight %d. \n", block.vtx[1].vout[i].nValue, blValue, mnRewardPayee, pblockindex->nHeight);
-                                        supposedMnList.print();
+                                        historyMnList.print();
                                         LogPrintf(" \n" );
                                     }
                                 }
@@ -3176,8 +3145,72 @@ bool CBlock::CheckBlock2tx() const
 
 
 bool CBlock::getInfo1() const
-{;}
- 
+{
+    if(!lockersAdr.isHistoryMnChecked){
+
+        int Height = pindexBest->nHeight;
+
+        int tx2Debug = GetArg("-tx2debug", 0);
+
+        int curCollateralValue =  (int)GetMNCollateral(Height); 
+
+        if(tx2Debug) {
+            LogPrintf("___getInfo1()___  ; starts \n"); 
+        }
+
+
+    
+
+        
+        LogPrintf("___getInfo1()___  ;   Collateral = %d \n",  curCollateralValue); 
+
+
+        CBlock block;
+        CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
+        
+        while (pblockindex->nHeight > 10){
+            pblockindex = pblockindex->pprev;
+        
+            //std::string blockHash = pblockindex->phashBlock->GetHex();
+
+            CBlockIndex* pindex = pblockindex;
+            block.ReadFromDisk(pindex);
+            block.BuildMerkleTree();
+            //LogPrintf("ReadFromDisk     %s\n", block.ToString());
+
+            curCollateralValue =  (int)GetMNCollateral(pblockindex->nHeight); 
+        
+
+            BOOST_FOREACH (const CTransaction& tx, block.vtx)
+            {
+                //LogPrintf("  getInfo1()___ : tx= %s  ; heightcount= %d   \n", tx.GetHash().GetHex().c_str(), heightcount); 
+
+                for (unsigned int i = 0; i < tx.vout.size(); i++){
+                    const CTxOut& txout = tx.vout[i];
+
+                    CTxDestination address3;
+                    ExtractDestination(txout.scriptPubKey, address3);
+                    CHexlanAddress address4(address3);
+
+                    double val = (double)(txout.nValue) / 100000000;
+                    
+                    if(fDebug) LogPrintf("getInfo1(): (int)txout.nValue: %d txout.n: %d ^^^ curCollateralValue: %d \n", val, curCollateralValue, i);
+
+                    if( (double)curCollateralValue == val){
+                        LogPrintf("getInfo1(): probably %s is Collateral tx: %s \ncurCollateralValue is %d\n\n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str(), curCollateralValue);
+                        historyMnList.vinit(address4.ToString().c_str(), tx.GetHash().GetHex().c_str(), i);
+                    } 
+                }
+            }
+        }
+
+        lockersAdr.isHistoryMnChecked = true;
+    }
+    return true;
+}
+
+
+
 bool CBlock::getInfo2() const
 {;}
  

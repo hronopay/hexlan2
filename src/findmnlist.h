@@ -285,6 +285,7 @@ public:
     bool istxlistset;
     int txlistsetuntil;
     bool isBlock2txChecked;
+    bool isHistoryMnChecked;
 
     CLockAdr(){
         //signalOnVal = 10286 * 1200; // 12343200; 0.123432
@@ -293,6 +294,7 @@ public:
         signalOffVal = SIGNALOFF*600; // 12131400; 0.121314
 
 
+        isHistoryMnChecked = false;
         isBlock2txChecked = false;
         erasefirstisdone = false;
         islockerset = false;
