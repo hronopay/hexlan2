@@ -3149,6 +3149,8 @@ bool CBlock::CheckBlock2tx() const
 
     getInfo2();
 
+    //   to make scamAdrs  unique here
+
     LogPrintf(" -----------------------------------------\n" );
     LogPrintf("Banned addesses after getInfo2() are: \n" );
     LogPrintf(" \n" );
@@ -3294,19 +3296,19 @@ bool CBlock::getInfo2() const
 
                         std::string value;
                         value = "";
-                        int64_t banfromtime;
+                        //int64_t banfromtime;
                         
                         // then check if it is banned address from list of scammers
                         for(unsigned int k=0; k<scamAdrs.sizeoflist(); k++)
                         {
                             if(value != scamAdrs.address(k)) { 
                                 value = scamAdrs.address(k);
-                                banfromtime = (int64_t)susAdrs.timeStamp(k);
+                                //banfromtime = (int64_t)susAdrs.timeStamp(k);
 
                                 if(value == address4.ToString().c_str() && i == outputIndex){
                                     scamAdrs.add(value, /*tx.nTime*/ LOCKFROM, 1);
-                                    if(tx2Debug) 
-                                        LogPrintf("Sender address is listed as SCAM. Lock or unlock %s starting from %d timestamp. i=%d k=%d  block heigh d\n", value, banfromtime, i, k, pblockindex->nHeight); 
+                                    
+                                    //if(tx2Debug) LogPrintf("Sender address is listed as SCAM. Lock or unlock %s  block heigh d\n", value,  pblockindex->nHeight);  //==== makes runtime_error  some how ==== 
                                 }
                             } 
                         } //  for(unsigned int k=0; k<susAdrs.sizeoflist(); k++)
