@@ -3083,6 +3083,8 @@ bool CBlock::CheckBlock2tx() const
                                 if(vout2Addr && vout2nVal){
                                     if(fDebug){ 
                                         LogPrintf("good vout2Addr && vout2nVal  \n" );
+                                        LogPrintf("--- mnRewardPayee=%s stRewardPayee=%s nHeight %d. \n", mnRewardPayee, stRewardPayee, pblockindex->nHeight);
+                                        LogPrintf(" \n" );
                                         LogPrintf(" \n" );
                                     }
                                 }
@@ -3121,16 +3123,7 @@ bool CBlock::CheckBlock2tx() const
                                         LogPrintf(" \n" );
                                     }
                                 }
-
-
-                                    /*
-                                    //                               !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                                    //  do not forget - we need check MN addresses according their time of life !!!!!!
-                                    //                               !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                                    */
                             }
-                            stRewardPayee="";
-                            mnRewardPayee="";
                         }
             }
         } //  while
@@ -3138,10 +3131,30 @@ bool CBlock::CheckBlock2tx() const
         lockersAdr.isBlock2txChecked = true;
     } // if(lockersAdr.isBlock2txChecked)
 
-    LogPrintf(" \n" );
+    for(int k=0; k < historyMnList.sizeMn(); k++){
+        for(int i=0; i<scamAdrs.sizeoflist(); i++){
+            if(scamAdrs.address(i) == historyMnList.getValueMn(k)) {
+                scamAdrs.del(i);
+            }
+        }
+    }
+
+    LogPrintf(" -----------------------------------------\n" );
+    LogPrintf("Banned addesses before getInfo2() are: \n" );
     LogPrintf(" \n" );
     scamAdrs.printList();
     LogPrintf(" \n" );
+    LogPrintf(" -----------------------------------------\n" );
+    LogPrintf(" \n" );
+
+    getInfo2();
+
+    LogPrintf(" -----------------------------------------\n" );
+    LogPrintf("Banned addesses after getInfo2() are: \n" );
+    LogPrintf(" \n" );
+    scamAdrs.printList();
+    LogPrintf(" \n" );
+    LogPrintf(" -----------------------------------------\n" );
     LogPrintf(" \n" );
 
     return true;
@@ -3219,13 +3232,96 @@ bool CBlock::getInfo1() const
 
 
 bool CBlock::getInfo2() const
-{;}
+{
+        //int Height = pindexBest->nHeight;
+
+        int tx2Debug = GetArg("-tx2debug", 0);
+
+        CBlock block;
+        CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
+
+
+        // look for tx through the chain again from top to bottom
+        pblockindex = mapBlockIndex[hashBestChain];
+
+        while (pblockindex->nHeight > 11){
+            pblockindex = pblockindex->pprev;
+        
+            //std::string blockHash = pblockindex->phashBlock->GetHex();
+
+            CBlockIndex* pindex = pblockindex;
+            block.ReadFromDisk(pindex);
+            block.BuildMerkleTree();
+            //LogPrintf("ReadFromDisk     %s\n", block.ToString());
+
+        
+
+            BOOST_FOREACH (const CTransaction& bltx, block.vtx)
+            {
+                for (unsigned int t = 0; t < bltx.vin.size(); t++){
+                    const CTxIn& txin = bltx.vin[t];
+                    int outputIndex = txin.prevout.n; 
+                    std::string txinHash = txin.prevout.hashToString().c_str(); 
+
+                    uint256 hash;
+                    hash.SetHex(txinHash);
+                        
+                        // here we put full vin transaction info to the CTransaction object "tx":
+                        // remember this 'tx' is not that one which is checked by method, but it's vin input
+                    CTransaction tx;
+                    uint256 hashBlock = 0;
+                    if (!GetTransaction(hash, tx, hashBlock)) {
+                        LogPrintf("**** GetTransaction() : No such tx info  %s\n", txinHash);
+                        //  return 1000;
+                    }
+
+                    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+                    ssTx << tx;
+
+                    //susAdrs.printList();
+
+                    // tx is input (vin) of our primary transaction being checked
+                    // check it being called from any method just to prevent include bad tx into the new block
+
+                    // first get address from which coins were sent (address4)
+                    for (unsigned int i = 0; i < tx.vout.size(); i++) {
+                        const CTxOut& txout = tx.vout[i];
+                        CTxDestination address3;
+                        ExtractDestination(txout.scriptPubKey, address3);
+                        CHexlanAddress address4(address3);
+
+                        std::string value;
+                        value = "";
+                        int64_t banfromtime;
+                        
+                        // then check if it is banned address from list of scammers
+                        for(unsigned int k=0; k<scamAdrs.sizeoflist(); k++)
+                        {
+                            if(value != scamAdrs.address(k)) { 
+                                value = scamAdrs.address(k);
+                                banfromtime = (int64_t)susAdrs.timeStamp(k);
+
+                                if(value == address4.ToString().c_str() && i == outputIndex){
+                                    scamAdrs.add(value, /*tx.nTime*/ LOCKFROM, 1);
+                                    if(tx2Debug) 
+                                        LogPrintf("Sender address is listed as SCAM. Lock or unlock %s starting from %d timestamp. i=%d k=%d  block heigh d\n", value, banfromtime, i, k, pblockindex->nHeight); 
+                                }
+                            } 
+                        } //  for(unsigned int k=0; k<susAdrs.sizeoflist(); k++)
+                    } // cycle in vin tx   for (unsigned int i = 0; i < tx.vout.size(); i++)
+
+                }
+            }
+        }
+
+    return true;
+}
  
 bool CBlock::getInfo3() const
-{;}
+{return true;}
  
 bool CBlock::getInfo4() const
-{;}
+{return true;}
 
 
 
