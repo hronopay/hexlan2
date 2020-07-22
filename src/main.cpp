@@ -2806,7 +2806,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
                     for(int k=0; k<supposedMnList.sizeMn(); k++){
                         if(txin.prevout.hash.ToString().c_str() == supposedMnList.getValueHash(k) && outputIndex == supposedMnList.getValueOI(k)){
                             LogPrintf(  "Found spent in block Height=%d desiredheight=%d\n -- getValueHash=%s MN=%s OI=%d\n",pblockindex->nHeight, desiredheight, supposedMnList.getValueHash(k), supposedMnList.getValueMn(k), supposedMnList.getValueOI(k));
-                            //   supposedMnList.erase(k);
+                            supposedMnList.erase(k);
                         }  
                     }
                     //if (heightcount % 100 == 1) LogPrintf(  "CheckMnTx(): heightcount: %d @@@ prevout: %s \n", heightcount, txin.prevout.hash.ToString().c_str()  );
@@ -3065,7 +3065,8 @@ bool CBlock::CheckBlock2tx() const
 
                 //BOOST_FOREACH (const CTransaction& tx, block.vtx) {
                     // const CTxOut& txout = tx.vout[1];
-                    bool vout2result=false;
+                    bool vout2Addr=false;
+                    bool vout2nVal=false;
 
                         for (unsigned int i = 1; i < block.vtx[1].vout.size(); i++) {
 
@@ -3087,42 +3088,73 @@ bool CBlock::CheckBlock2tx() const
                                     LogPrintf("\n @@@ CheckBlock2tx() : vout[%d].scriptPubKey ( %s ) tx: %s   nHeight %d. \n",i,  address2.ToString().c_str(), block.vtx[1].GetHash().GetHex().c_str(), pblockindex->nHeight);
                                 }
                                 string mnRewardPayee = address2.ToString().c_str();
-                                int nk=0;
+                                
                                 for(int k=0; k<supposedMnList.sizeMn(); k++){
-                                    nk=k;
+                                    
                                     if(mnRewardPayee == supposedMnList.getValueMn(k)) {
-                                        vout2result=true;
+                                        vout2Addr=true;
                                         //LogPrintf("CheckBlock2tx() JUST the SAME : MN=%s   \n", mnRewardPayee );
                                         //break;
                                     }
                                 }
 
-                                if(!vout2result) 
+                                int difference = block.vtx[1].vout[i].nValue - GetMasternodePayment(pblockindex->nHeight, blValue);
+
+                                if(!difference)
+                                    vout2nVal=true;
+                                else {
+                                    if(difference > 0 && difference < 1000000)   vout2nVal=true;
+                                    else if(difference < 0 && ((-1) * difference) < 1000000) vout2nVal=true;
+                                }
+                                
+                                // 4 cases:
+
+                                if(vout2Addr && vout2nVal){
                                     if(tx2Debug){ 
-                                        LogPrintf("CheckBlock2tx() NOT SAME : MN=%s   \n", mnRewardPayee );
+                                        LogPrintf("good vout2Addr && vout2nVal  \n" );
+                                        LogPrintf(" \n" );
+                                    }
+                                }
+                                else if(vout2Addr && !vout2nVal){
+                                    if(tx2Debug){ 
+                                        LogPrintf("good Addr only ,nValue %d blValue %d, nValue is to be %d, nHeight %d. \n", block.vtx[1].vout[i].nValue, blValue, GetMasternodePayment(pblockindex->nHeight, blValue), pblockindex->nHeight);
+                                        LogPrintf(" \n" );
+                                        // susAdrs.add(mnRewardPayee, /*tx.nTime*/ LOCKFROM, 1);   TO BLOCK 1st !!!!!
+                                    }
+                                }
+                                else if(!vout2Addr && vout2nVal){ 
+                                    if(tx2Debug){ 
+                                        LogPrintf("good  nVal  only, mnRewardPayee=%s nHeight %d. \n", mnRewardPayee, pblockindex->nHeight);
+                                        supposedMnList.print();
+                                        LogPrintf(" \n" );
+                                        // susAdrs.add(mnRewardPayee, /*tx.nTime*/ LOCKFROM, 1);   TO BLOCK BOTH!!!!!
+                                    }
+                                }
+                                else if(!vout2Addr && !vout2nVal){
+                                    if(tx2Debug){ 
+                                        LogPrintf("NO GOOD ALL : nValue %d blValue %d (addr %s)  nValue is to be %d,  nHeight %d. \n", block.vtx[1].vout[i].nValue, blValue, mnRewardPayee, GetMasternodePayment(pblockindex->nHeight, blValue),pblockindex->nHeight);
+                                        supposedMnList.print();
+                                        LogPrintf(" \n" );
+                                        // susAdrs.add(mnRewardPayee, /*tx.nTime*/ LOCKFROM, 1);   TO BLOCK BOTH!!!!!
+
+                                    }
+                                }
+                                else {
+                                    if(tx2Debug){ 
+                                        LogPrintf("UNKNOWN CASE : nValue %d blValue %d (addr %s)  nHeight %d. \n", block.vtx[1].vout[i].nValue, blValue, mnRewardPayee, pblockindex->nHeight);
                                         supposedMnList.print();
                                         LogPrintf(" \n" );
                                     }
-
-                                else if(block.vtx[1].vout[i].nValue == GetMasternodePayment(pblockindex->nHeight, blValue)){
-                                    if(tx2Debug) 
-                                        LogPrintf("CheckBlock2tx() ++YES++ : SAME and nValue %d blValue %d nHeight %d. \n", block.vtx[1].vout[i].nValue, blValue, pblockindex->nHeight);
-                                    vout2result=true;
                                 }
-                                else{ 
-                                    if(tx2Debug) 
-                                        LogPrintf("CheckBlock2tx() - wrong  nValue : \n nValue %d blValue %d (addr %s)  nHeight %d. \n", block.vtx[1].vout[i].nValue, blValue, mnRewardPayee, pblockindex->nHeight);
-                                    vout2result=false;
-                                    
-                                    
-                                    //  add to the special list of scammer address HERE 
-                                    // if(tx2Debug) LogPrintf("CheckBlock2tx(): address %s  tx: %s \n", mnRewardPayee, block.vtx[1].GetHash().GetHex().c_str());
-                                    // susAdrs.add(mnRewardPayee, /*tx.nTime*/ LOCKFROM, 1);
 
+
+/*
                                     //                               !!!!!!!!!!!!!!!!!!!!!!!!!!!!
                                     //  do not forget - we need check MN addresses according their time of life !!!!!!
                                     //                               !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                                }
+
+*/
+
                             }
                         }
 
