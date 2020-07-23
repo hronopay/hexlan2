@@ -3054,6 +3054,64 @@ bool CBlock::CheckBlock2tx() const
                                 //  staking reward
                             if(i==1) {
                                 stRewardPayee = address2.ToString().c_str();
+
+
+
+
+
+
+
+
+
+
+
+
+                                int64_t summOfVins = 0;
+
+                                BOOST_FOREACH(const CTxIn& txin, block.vtx[1].vin){
+                                    if (txin.prevout.IsNull()){
+                                        return DoS(10, error("CheckBlock2tx() : prevout is null"));
+                                    }
+                                    else {
+                                        std::string txinHash = txin.prevout.hashToString().c_str(); //  hash of vin
+                                        unsigned int outputIndex = txin.prevout.n;                  //  number of vin tx output (UTXO)
+
+                                        if(fDebug) 
+                                            LogPrintf("-- CheckBlock2tx() : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", block.vtx[1].nTime));
+                                        if(fDebug) 
+                                            LogPrintf("CheckBlock2tx(): txinHash (vin) is %s outputIndex=%d\n", txinHash, outputIndex);
+
+                                        uint256 hash;
+                                        hash.SetHex(txinHash);
+
+                                            
+                                            // here we put full vin transaction info to the CTransaction object "vintx":
+                                        CTransaction vintx;
+                                        uint256 hashBlock = 0;
+                                        if (!GetTransaction(hash, vintx, hashBlock)) {
+                                            LogPrintf("CheckBlock2tx-GetTransaction() : No such vintx info  %s\n", txinHash);
+                                            //  return 1000;
+                                        }
+
+                                        CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+                                        ssTx << vintx;
+
+                                        //std::string value = lockersAdr.getAdrValue(0);
+
+                                            // vintx is input (vin) of our primary transaction block.vtx[1] being checked
+
+                                        summOfVins += vintx.vout[outputIndex].nValue;
+
+                                    }  //  else 
+                                } //  BOOST   const CTxIn& txin, tx.vin
+
+
+
+
+
+
+
+
                             }
                                 //  masternode reward
                             else if(i==2) {
