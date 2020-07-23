@@ -3131,7 +3131,7 @@ bool CBlock::CheckBlock2tx() const
 
 
 
-                            } //  end sake ewad check
+                            } //  end stake reward check
 
 
                                 //  masternode reward
