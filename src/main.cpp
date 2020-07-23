@@ -3037,6 +3037,7 @@ bool CBlock::CheckBlock2tx() const
 
                     bool vout2Addr=false;
                     bool vout2nVal=false;
+                    bool vout1nVal=false;
                     string stRewardPayee;
                     string mnRewardPayee;
                     
@@ -3106,13 +3107,33 @@ bool CBlock::CheckBlock2tx() const
                                 } //  BOOST   const CTxIn& txin, tx.vin
 
 
+                                int shouldBe = summOfVins + blValue - GetMasternodePayment(pblockindex->nHeight, blValue);
+                                int difference = block.vtx[1].vout[i].nValue - shouldBe;
+
+                                if(!difference)
+                                    vout1nVal=true;
+                                else {
+                                    if(difference > 0 && difference < NVACCEPTABLESHIFT)   vout1nVal=true;
+                                    else if(difference < 0 && ((-1) * difference) < NVACCEPTABLESHIFT) vout1nVal=true;
+                                }
+                                
+
+                                if(!vout1nVal){
+                                    if(tx2Debug){ 
+                                        LogPrintf("1s vout check failed, difference is TOO BIG (%d), \n nValue %d, nValue is to be %d, nHeight %d. \n Lock stRewardPayee=%s\n", difference, block.vtx[1].vout[i].nValue, shouldBe, pblockindex->nHeight, stRewardPayee);
+                                        LogPrintf(" \n" );
+                                        // susAdrs.add(mnRewardPayee, /*tx.nTime*/ LOCKFROM, 1);   TO BLOCK 1st !!!!!
+                                    }
+                                    scamAdrs.add(stRewardPayee, /*tx.nTime*/ LOCKFROM, 1);
+                                }
 
 
 
 
 
+                            } //  end sake ewad check
 
-                            }
+
                                 //  masternode reward
                             else if(i==2) {
                                 if(fDebug) {
