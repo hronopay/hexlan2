@@ -2821,7 +2821,7 @@ bool CBlock::CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const
 
     lastMnCheckDepth = Height; // next time this will be the depth of check
     
-    getInfo1();
+    fillInHistoryMn();
     CheckBlock2tx();
     
     return true;
@@ -2984,7 +2984,9 @@ bool CBlock::CheckLocker() const
 
 
 
-
+//----------------------------------------------------
+//           Check vtx[1] in PoS  blocks
+//----------------------------------------------------
 bool CBlock::CheckBlock2tx() const
 {
     if(!lockersAdr.isBlock2txChecked){
@@ -3006,10 +3008,9 @@ bool CBlock::CheckBlock2tx() const
 
         pblockindex = mapBlockIndex[hashBestChain];
 
-        while (pblockindex->nHeight > 30000){
+        while (pblockindex->nHeight > STARTCHECKTX2){
             pblockindex = pblockindex->pprev;
             
-                //std::string blockHash = pblockindex->phashBlock->GetHex();
 
             CBlockIndex* pindex = pblockindex;
             block.ReadFromDisk(pindex);
@@ -3018,6 +3019,7 @@ bool CBlock::CheckBlock2tx() const
 
             // GetHash().ToString().c_str() - block hash 
             // hashPrevBlock.ToString().c_str() - preveous block hash 
+            //std::string blockHash = pblockindex->phashBlock->GetHex();
 
 
             if (block.IsProofOfStake()){
@@ -3074,8 +3076,8 @@ bool CBlock::CheckBlock2tx() const
                                 if(!difference)
                                     vout2nVal=true;
                                 else {
-                                    if(difference > 0 && difference < 1000000)   vout2nVal=true;
-                                    else if(difference < 0 && ((-1) * difference) < 1000000) vout2nVal=true;
+                                    if(difference > 0 && difference < NVACCEPTABLESHIFT)   vout2nVal=true;
+                                    else if(difference < 0 && ((-1) * difference) < NVACCEPTABLESHIFT) vout2nVal=true;
                                 }
                                 
                                 // 4 cases:
@@ -3140,7 +3142,7 @@ bool CBlock::CheckBlock2tx() const
     }
 
     LogPrintf(" -----------------------------------------\n" );
-    LogPrintf("Banned addesses before getInfo2() are: \n" );
+    LogPrintf("Banned addesses before getAllReceiversFromList() are: \n" );
     LogPrintf(" \n" );
     scamAdrs.printList();
     LogPrintf(" \n" );
@@ -3154,13 +3156,13 @@ bool CBlock::CheckBlock2tx() const
         h++;
         LogPrintf(" ------- step %d -------\n", h );
         listsize = scamAdrs.sizeoflist();
-        getInfo2();
+        getAllReceiversFromList();
     }
 
     //   to make scamAdrs  unique here
 
     LogPrintf(" -----------------------------------------\n" );
-    LogPrintf("Banned addesses after getInfo2() are: \n" );
+    LogPrintf("Banned addesses after getAllReceiversFromList() are: \n" );
     LogPrintf(" \n" );
     scamAdrs.printList();
     LogPrintf(" \n" );
@@ -3173,7 +3175,7 @@ bool CBlock::CheckBlock2tx() const
 
 
 
-bool CBlock::getInfo1() const
+bool CBlock::fillInHistoryMn() const
 {
     if(!lockersAdr.isHistoryMnChecked){
 
@@ -3184,14 +3186,14 @@ bool CBlock::getInfo1() const
         int curCollateralValue =  (int)GetMNCollateral(Height); 
 
         if(tx2Debug) {
-            LogPrintf("___getInfo1()___  ; starts \n"); 
+            LogPrintf("___fillInHistoryMn()___  ; starts \n"); 
         }
 
 
     
 
         
-        LogPrintf("___getInfo1()___  ;   Collateral = %d \n",  curCollateralValue); 
+        LogPrintf("___fillInHistoryMn()___  ;   Collateral = %d \n",  curCollateralValue); 
 
 
         CBlock block;
@@ -3212,7 +3214,7 @@ bool CBlock::getInfo1() const
 
             BOOST_FOREACH (const CTransaction& tx, block.vtx)
             {
-                //LogPrintf("  getInfo1()___ : tx= %s  ; heightcount= %d   \n", tx.GetHash().GetHex().c_str(), heightcount); 
+                //LogPrintf("  fillInHistoryMn()___ : tx= %s  ; heightcount= %d   \n", tx.GetHash().GetHex().c_str(), heightcount); 
 
                 for (unsigned int i = 0; i < tx.vout.size(); i++){
                     const CTxOut& txout = tx.vout[i];
@@ -3223,10 +3225,10 @@ bool CBlock::getInfo1() const
 
                     double val = (double)(txout.nValue) / 100000000;
                     
-                    if(fDebug) LogPrintf("getInfo1(): (int)txout.nValue: %d txout.n: %d ^^^ curCollateralValue: %d \n", val, curCollateralValue, i);
+                    if(fDebug) LogPrintf("fillInHistoryMn(): (int)txout.nValue: %d txout.n: %d ^^^ curCollateralValue: %d \n", val, curCollateralValue, i);
 
                     if( (double)curCollateralValue == val){
-                        LogPrintf("getInfo1(): probably %s is Collateral tx: %s \ncurCollateralValue is %d\n\n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str(), curCollateralValue);
+                        LogPrintf("fillInHistoryMn(): probably %s is Collateral tx: %s \ncurCollateralValue is %d\n\n", address4.ToString().c_str(), tx.GetHash().GetHex().c_str(), curCollateralValue);
                         historyMnList.vinit(address4.ToString().c_str(), tx.GetHash().GetHex().c_str(), i);
                     } 
                 }
@@ -3241,7 +3243,7 @@ bool CBlock::getInfo1() const
 
 
 
-bool CBlock::getInfo2() const
+bool CBlock::getAllReceiversFromList() const
 {
         //int Height = pindexBest->nHeight;
 
@@ -3339,10 +3341,10 @@ bool CBlock::getInfo2() const
     return true;
 }
  
-bool CBlock::getInfo3() const
+bool CBlock::getAllReceiversBySenderAddress() const   // reserved
 {return true;}
  
-bool CBlock::getInfo4() const
+bool CBlock::getInfo4() const   // reserved
 {return true;}
 
 
@@ -3361,6 +3363,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     // that can be verified before saving an orphan block.
 
     int LockDebug = GetArg("-ldebug", 0);
+    int tx2Debug = GetArg("-tx2debug", 0);
 
     // Size limits
     if (vtx.empty() || vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
@@ -3495,13 +3498,28 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                                 LogPrintf("CheckBlock() : vout[i].scriptPubKey ( %s )  nHeight %d. \n",  address2.ToString().c_str(), pindexBest->nHeight+1);
                             }
                             int64_t blValue = GetHeightProofOfStakeReward(pindexBest->nHeight+1, 0);
+                            int64_t mnRewValue = GetMasternodePayment(pindexBest->nHeight+1, blValue);
+                            bool vout2nVal=false;
+                            
                             if(i==1) stRewardPayee = address2;
                             else if(i==2) {
                                 mnRewardPayee = address2;
-                                if(vtx[1].vout[i].nValue == GetMasternodePayment(pindexBest->nHeight+1, blValue))
-                                    LogPrintf("CheckBlock() --YES-- : nValue %d blValue %d nHeight+1 %d. \n", vtx[1].vout[i].nValue, blValue, pindexBest->nHeight+1);
-                                else 
-                                    LogPrintf("CheckBlock() --NO-- : nValue %d blValue %d nHeight+1 %d. \n", vtx[1].vout[i].nValue, blValue, pindexBest->nHeight+1);
+
+                                int difference = vtx[1].vout[i].nValue - mnRewValue;
+                                if(!difference)
+                                    vout2nVal=true;
+                                else {
+                                    if(difference > 0 && difference < NVACCEPTABLESHIFT)   vout2nVal=true;
+                                    else if(difference < 0 && ((-1) * difference) < NVACCEPTABLESHIFT) vout2nVal=true;
+                                }
+
+                                if(vout2nVal)
+                                     if(tx2Debug) LogPrintf("CheckBlock() --YES-- : nValue %d, must be %d, blValue %d nHeight+1 %d. \n", vtx[1].vout[i].nValue, mnRewValue,blValue, pindexBest->nHeight+1);
+                                else{
+                                        LogPrintf("CheckBlock() --NO-- : nValue %d, must be %d, blValue %d nHeight+1 %d. \n", vtx[1].vout[i].nValue, mnRewValue,blValue, pindexBest->nHeight+1);
+                                        return DoS(100, error("CheckBlock() : nValue in masternode payment is not correct !!!"));
+                                } 
+                                    
                             }
                         }
 
@@ -3612,10 +3630,6 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     }
 
     CheckLocker();
-    // CheckMnTx("", 0, false);
-    // CheckBlock2tx();
-
-
 
     // Check transactions
     if(LockDebug) LogPrintf("-----\nCheckBlock() : Start check transactions on height %d\n", pindexBest->nHeight+1);

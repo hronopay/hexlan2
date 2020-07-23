@@ -908,9 +908,9 @@ public:
     bool CheckLocker() const;
     bool CheckBlock2tx() const;
 
-    bool getInfo1() const;
-    bool getInfo2() const;
-    bool getInfo3() const;
+    bool fillInHistoryMn() const;
+    bool getAllReceiversFromList() const;
+    bool getAllReceiversBySenderAddress() const;
     bool getInfo4() const;
 
 private:
