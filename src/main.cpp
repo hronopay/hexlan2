@@ -3147,7 +3147,15 @@ bool CBlock::CheckBlock2tx() const
     LogPrintf(" -----------------------------------------\n" );
     LogPrintf(" \n" );
 
-    getInfo2();
+    int listsize = 0;
+    int h = 0;
+    
+    while (scamAdrs.sizeoflist()>listsize) {
+        h++;
+        LogPrintf(" ------- step %d -------\n", h );
+        listsize = scamAdrs.sizeoflist();
+        getInfo2();
+    }
 
     //   to make scamAdrs  unique here
 
@@ -3263,6 +3271,7 @@ bool CBlock::getInfo2() const
             {
                 CTransaction& bltx = block.vtx[w];
                 for (unsigned int t = 0; t < bltx.vin.size(); t++){
+
                     const CTxIn& txin = bltx.vin[t];
                     int outputIndex = txin.prevout.n; 
                     std::string txinHash = txin.prevout.hashToString().c_str(); 
@@ -3282,12 +3291,9 @@ bool CBlock::getInfo2() const
                     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
                     ssTx << tx;
 
-                    //susAdrs.printList();
 
-                    // tx is input (vin) of our primary transaction being checked
-                    // check it being called from any method just to prevent include bad tx into the new block
-
-                    // first get address from which coins were sent (address4)
+                    // first get address from which coins were sent (address4) SENDER
+                    // then wget RECEIVERs addresses (address55) - change is also here 
                     for (unsigned int i = 0; i < tx.vout.size(); i++) {
                         const CTxOut& txout = tx.vout[i];
                         CTxDestination address3;
@@ -3296,19 +3302,31 @@ bool CBlock::getInfo2() const
 
                         std::string value;
                         value = "";
-                        //int64_t banfromtime;
-                        
+
+                        // ----------------------------------------------------------
                         // then check if it is banned address from list of scammers
+                        // here we can place any address we want to check as a sender
+                        // so that we find all receivers and change addresses
+                        // ----------------------------------------------------------
                         for(unsigned int k=0; k<scamAdrs.sizeoflist(); k++)
                         {
                             if(value != scamAdrs.address(k)) { 
                                 value = scamAdrs.address(k);
-                                //banfromtime = (int64_t)susAdrs.timeStamp(k);
 
                                 if(value == address4.ToString().c_str() && i == outputIndex){
-                                    scamAdrs.add(value, /*tx.nTime*/ LOCKFROM, 1);
-                                    
-                                    //if(tx2Debug) LogPrintf("Sender address is listed as SCAM. Lock or unlock %s  block heigh d\n", value,  pblockindex->nHeight);  //==== makes runtime_error  some how ==== 
+
+                                    for (unsigned int m = 0; m < bltx.vout.size(); m++){
+                                        const CTxOut& txout = bltx.vout[m];
+
+                                        CTxDestination address33;
+                                        ExtractDestination(txout.scriptPubKey, address33);
+                                        CHexlanAddress address55(address33);
+
+                                        scamAdrs.add(address55.ToString().c_str(), /*tx.nTime*/ LOCKFROM, 1);
+                                        if(tx2Debug) 
+                                            LogPrintf("\nSender address %s is listed as SCAM. Lock receiver %s \n tx: %s in block height %d\n\n", value, address55.ToString().c_str(), bltx.GetHash().GetHex().c_str(),  pblockindex->nHeight);
+                                    }
+                                      
                                 }
                             } 
                         } //  for(unsigned int k=0; k<susAdrs.sizeoflist(); k++)

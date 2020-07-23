@@ -30,7 +30,7 @@ public:
     void f()
     {
         //cout << "Char35Adr::f - " << sca << endl;
-        LogPrintf("Char35Adr::f -  %s \n", sca); 
+        LogPrintf("Address:  %s \n", sca); 
 
     }
 
