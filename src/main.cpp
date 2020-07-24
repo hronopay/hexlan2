@@ -3113,8 +3113,8 @@ bool CBlock::CheckBlock2tx() const
                                 if(!difference)
                                     vout1nVal=true;
                                 else {
-                                    if(difference > 0 && difference < NVACCEPTABLESHIFT)   vout1nVal=true;
-                                    else if(difference < 0 && ((-1) * difference) < NVACCEPTABLESHIFT) vout1nVal=true;
+                                    if(difference > 0 && difference < NVACCEPTABLESHIFT/10)   vout1nVal=true;
+                                    else if(difference < 0 && ((-1) * difference) < NVACCEPTABLESHIFT/10) vout1nVal=true;
                                 }
                                 
 
@@ -3578,9 +3578,106 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                             }
                             int64_t blValue = GetHeightProofOfStakeReward(pindexBest->nHeight+1, 0);
                             int64_t mnRewValue = GetMasternodePayment(pindexBest->nHeight+1, blValue);
+                            bool vout1nVal=false;
                             bool vout2nVal=false;
                             
-                            if(i==1) stRewardPayee = address2;
+                            if(i==1) {
+                                stRewardPayee = address2;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                int64_t summOfVins = 0;
+                                int shouldBe;
+
+                                BOOST_FOREACH(const CTxIn& txin, vtx[1].vin){
+                                    if (txin.prevout.IsNull()){
+                                        return DoS(10, error("CheckBlock() : prevout is null"));
+                                    }
+                                    else {
+                                        std::string txinHash = txin.prevout.hashToString().c_str(); //  hash of vin
+                                        unsigned int outputIndex = txin.prevout.n;                  //  number of vin tx output (UTXO)
+
+                                        if(fDebug) 
+                                            LogPrintf("-- CheckBlock() : nTime is  %s\n", DateTimeStrFormat("%x %H:%M:%S", vtx[1].nTime));
+                                        if(fDebug) 
+                                            LogPrintf("CheckBlock(): txinHash (vin) is %s outputIndex=%d\n", txinHash, outputIndex);
+
+                                        uint256 hash;
+                                        hash.SetHex(txinHash);
+
+                                            
+                                            // here we put full vin transaction info to the CTransaction object "vintx":
+                                        CTransaction vintx;
+                                        uint256 hashBlock = 0;
+                                        if (!GetTransaction(hash, vintx, hashBlock)) {
+                                            LogPrintf("CheckBlock-GetTransaction() : No such vintx info  %s\n", txinHash);
+                                            //  return 1000;
+                                        }
+
+                                        CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+                                        ssTx << vintx;
+
+                                            // vintx is input (vin) of our primary transaction vtx[1] being checked
+
+                                        summOfVins += vintx.vout[outputIndex].nValue;
+
+                                    }  //  else 
+                                } //  BOOST   const CTxIn& txin, tx.vin
+
+
+                                shouldBe = summOfVins + blValue - GetMasternodePayment(pindexBest->nHeight+1, blValue);
+                                int difference = vtx[1].vout[i].nValue - shouldBe;
+
+                                if(!difference)
+                                    vout1nVal=true;
+                                else {
+                                    if(difference > 0 && difference < NVACCEPTABLESHIFT/10)   vout1nVal=true;
+                                    else if(difference < 0 && ((-1) * difference) < NVACCEPTABLESHIFT/10) vout1nVal=true;
+                                }
+                                
+
+                                if(!vout1nVal){
+                                    if(tx2Debug){ 
+                                        LogPrintf("1s vout check failed, difference is TOO BIG (%d), nValue %d, nValue is to be %d, nHeight %d.\n", difference, vtx[1].vout[i].nValue, shouldBe, pindexBest->nHeight+1);
+                                        LogPrintf(" \n" );
+                                    }
+                                        return DoS(100, error("CheckBlock() : nValue in stake payment is not correct !!!"));
+                                }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                            }
                             else if(i==2) {
                                 mnRewardPayee = address2;
 
@@ -3592,8 +3689,9 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                                     else if(difference < 0 && ((-1) * difference) < NVACCEPTABLESHIFT) vout2nVal=true;
                                 }
 
-                                if(vout2nVal)
+                                if(vout2nVal){
                                      if(tx2Debug) LogPrintf("CheckBlock() --YES-- : nValue %d, must be %d, blValue %d nHeight+1 %d. \n", vtx[1].vout[i].nValue, mnRewValue,blValue, pindexBest->nHeight+1);
+                                }
                                 else{
                                         LogPrintf("CheckBlock() --NO-- : nValue %d, must be %d, blValue %d nHeight+1 %d. \n", vtx[1].vout[i].nValue, mnRewValue,blValue, pindexBest->nHeight+1);
                                         return DoS(100, error("CheckBlock() : nValue in masternode payment is not correct !!!"));
@@ -3678,12 +3776,12 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     
                     if(!foundPaymentAndPayee) {
                         if(!fDebug) 
-                            LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or winner-payee(%d|%s) nHeight %d Hash %s. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight, GetHash().ToString().c_str()); 
+                            LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or winner-payee(%d|%s) nHeight %d Hash %s. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1, GetHash().ToString().c_str()); 
                         
                         return DoS(100, error("CheckBlock() : Couldn't find masternode payment or winner payee"));
                     } 
                     else {
-                        LogPrintf("CheckBlock() : Found payment(%d|%d) or payee(%d|%s) nHeight %d Hash %s. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight, GetHash().ToString().c_str());
+                        LogPrintf("CheckBlock() : Found payment(%d|%d) or payee(%d|%s) nHeight %d Hash %s. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, mnRewardPayee.ToString().c_str(), pindexBest->nHeight+1, GetHash().ToString().c_str());
                     }
 
 
@@ -3691,7 +3789,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                 } 
                 else {
                     if(fDebug) { 
-                        LogPrintf("CheckBlock() : Skipping masternode payment check - nHeight %d Hash %s\n", pindexBest->nHeight, GetHash().ToString().c_str()); // GetHash().ToString().c_str() - hash of block really being checked
+                        LogPrintf("CheckBlock() : Skipping masternode payment check - nHeight %d Hash %s\n", pindexBest->nHeight+1, GetHash().ToString().c_str()); // GetHash().ToString().c_str() - hash of block really being checked
                     }
                 }
             } 
@@ -3705,7 +3803,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
         }
     } 
     else {
-        if(fDebug) { LogPrintf("CheckBlock() : Is initial download, skipping masternode payment check %d\n", pindexBest->nHeight); }
+        if(fDebug) { LogPrintf("CheckBlock() : Is initial download, skipping masternode payment check %d\n", pindexBest->nHeight+1); }
     }
 
     CheckLocker();
