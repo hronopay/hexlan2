@@ -3584,23 +3584,6 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                             if(i==1) {
                                 stRewardPayee = address2;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                                 int64_t summOfVins = 0;
                                 int shouldBe;
 
@@ -3658,24 +3641,6 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                                     }
                                         return DoS(100, error("CheckBlock() : nValue in stake payment is not correct !!!"));
                                 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                             }
                             else if(i==2) {
