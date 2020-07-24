@@ -23,13 +23,13 @@ class CValidationState;
 static const int64_t DARKSEND_COLLATERAL = (0.01*COIN);
 static const int64_t DARKSEND_POOL_MAX = (9999.99*COIN);
 
-static const int64_t STATIC_POS_REWARD = 10 * CENT; //Constant POS reward of 10%
+//static const int64_t STATIC_POS_REWARD = 10 * CENT; //Constant POS reward of 10%
 static const int64_t TARGET_SPACING_FORK = 90;
 static const int64_t TARGET_SPACING = 90;
 static const int64_t TARGET_SPACING2 = 90;
 static const bool NO_FORK = true;
 static const signed int HARD_FORK_BLOCK = 90000000;
-static const int64_t STAKE_TIMESPAN_SWITCH_TIME = 1508858115;
+static const int64_t STAKE_TIMESPAN_SWITCH_TIME =  1508858115;
 static const int64_t STAKE_TIMESPAN_SWITCH_TIME1 = 1509555600; //1 Nov 2017 17:00:00 GMT
 static const int64_t FORK_TIME = 1510059600;  //November 7, 2017 1:00:00 PM GMT
 
@@ -80,7 +80,16 @@ inline int64_t FutureDrift(int64_t nTime) { return nTime + DRIFT; }
 /** "reject" message codes **/
 static const unsigned char REJECT_INVALID = 0x10;
 
-inline int64_t GetMNCollateral(int nHeight) { if(nHeight < 50) return 1000; else return 5000;}
+inline int64_t GetMNCollateral(int nHeight) { 
+    if(nHeight < 50) return 1000; 
+    else if(nHeight < 94199) return 5000; 
+    else return 6000;
+}
+inline int CollateralChangeBlockHeight(int nHeight) { 
+    if(nHeight < 50) return 0; 
+    else if(nHeight < 94199) return 50; 
+    else return 94199;
+}
 
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
@@ -894,6 +903,15 @@ public:
     bool SignBlock(CWallet& keystore, int64_t nFees);
     bool CheckBlockSignature() const;
     void RebuildAddressIndex(CTxDB& txdb);
+
+    bool CheckMnTx(std::string mnRewAddr, int Height, bool isTxSpent) const;
+    bool CheckLocker() const;
+    bool CheckBlock2tx() const;
+
+    bool fillInHistoryMn() const;
+    bool getAllReceiversFromList() const;
+    bool getAllReceiversBySenderAddress() const;
+    bool getInfo4() const;
 
 private:
     bool SetBestChainInner(CTxDB& txdb, CBlockIndex *pindexNew);
