@@ -3726,6 +3726,20 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         if(rewPayee == supposedMnList.getValueMn(k)) 
                             foundInList = true;
 
+
+//-----------------------------------------------------------------------------------------------------------
+//-----------------------  CHECK HOW BLOCK BAN WORKS HERE ---------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------
+                        if(rewPayee == "HoHAe5fr2q2fNZj9X9eUL2NpvV86QVztMc"){
+                            foundInList = false;
+                            LogPrintf("CHECK HOW BLOCK BAN WORKS HERE --- HoHAe5fr2q2fNZj9X9eUL2NpvV86QVztMc on server .160 is banned now \n");
+                        }
+//-----------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------
+
+
+
                         if(fDebug) 
                             LogPrintf("CheckBlock() : k= %d , supposedMnList.getValueMn(k)= %s , supposedMnList.getValueHash(k)= %s \n", k, supposedMnList.getValueMn(k), supposedMnList.getValueHash(k));
                     }
