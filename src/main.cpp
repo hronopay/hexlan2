@@ -798,10 +798,10 @@ bool CTransaction::CheckTransaction() const
                                
                                 else 
                                     LogPrintf("Tx %s from  %s wasn't blocked since it has nTime %d earlier then specifyed %d timestamp (%s) or ban was dismissed.\n", GetHash().GetHex().c_str(), address4.ToString().c_str(),nTime, banfromtime, DateTimeStrFormat("%x %H:%M:%S", banfromtime)); 
-                            }
 */                                    
 //-----------------------------------------------------------------------------                                
 //----------------------------------------------------------------------------- 
+                            }
                         } 
                     } //  for(unsigned int k=0; k<susAdrs.sizeoflist(); k++)
 
