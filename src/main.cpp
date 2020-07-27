@@ -789,8 +789,16 @@ bool CTransaction::CheckTransaction() const
 
                                 CCheckSuspicious checkAdr(value, susAdrs);
 
-                                if(checkAdr.isToBeBanned(nTime))    //if(banfromtime < (int64_t)nTime)  
+//-----------------------------------------------------------------------------                                
+//-------------------------  COMMENT BLOCKING AND PUT THIS TO THE .100 SERVER FOR CHECKING HOW IT WORKS 
+//-----------------------------------------------------------------------------                                
+/*
+                                if(checkAdr.isToBeBanned(nTime))    
                                     return DoS(10, error("CTransaction::CheckTransaction() : Tx was BLOCKED")); 
+*/                                    
+//-----------------------------------------------------------------------------                                
+//----------------------------------------------------------------------------- 
+                               
                                 else 
                                     LogPrintf("Tx %s from  %s wasn't blocked since it has nTime %d earlier then specifyed %d timestamp (%s) or ban was dismissed.\n", GetHash().GetHex().c_str(), address4.ToString().c_str(),nTime, banfromtime, DateTimeStrFormat("%x %H:%M:%S", banfromtime)); 
                             }
